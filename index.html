@@ -501,17 +501,30 @@
         let chartTrainerDistInstance = null;
         let chartSessionStatusInstance = null;
 
+        // FUNGSI PENCOCOKAN NAMA TRAINER PRESISI (EXACT & UNIQUE KEYWORD MATCHING)
         function matchTrainerName(rawName) {
             if (!rawName) return "Lainnya / Belum Ditentukan";
             const clean = String(rawName).trim().toLowerCase();
             
+            // 1. Cek Exact Full Match
             for (let t of TRAINERS) {
-                const tLower = t.toLowerCase();
-                const firstName = tLower.split(' ')[0];
-                if (clean === tLower || clean.includes(firstName)) {
-                    return t;
-                }
+                if (clean === t.toLowerCase()) return t;
             }
+
+            // 2. Cek Kata Kunci Unik Khusus per Trainer
+            if (clean.includes("alwansyah") || clean.includes("arsathama")) return "Muhammad Alwansyah Arsathama";
+            if (clean.includes("fatihin")) return "M Fatihin";
+            if (clean.includes("arini") || clean.includes("pahwandi")) return "Arini Permata Pahwandi";
+            if (clean.includes("bima") || clean.includes("aminullah")) return "Bima Aminullah";
+            if (clean.includes("caraka") || clean.includes("satriya")) return "Caraka Vira Satriya";
+            if (clean.includes("davara") || clean.includes("alamanda")) return "Davara Cahya Alamanda";
+            if (clean.includes("dedy") || clean.includes("mawansyah")) return "Dedy Mawansyah";
+            if (clean.includes("mega")) return "Mega Putri L. S.";
+            if (clean.includes("rindu") || clean.includes("adji")) return "Rindu Adji";
+            if (clean.includes("rosi") || clean.includes("kurnia")) return "Rosi Kurnia A.I.S.";
+            if (clean.includes("wahyu") || clean.includes("setiawan")) return "Wahyu Setiawan";
+            if (clean.includes("yomi") || clean.includes("david")) return "Yomi David A.S.";
+
             return String(rawName).trim();
         }
 
@@ -605,7 +618,6 @@
             return matches ? parseInt(matches[0]) : 12;
         }
 
-        // EKSPOR LAPORAN SPESIFIK (SESI HABIS ATAU HAMPIR HABIS)
         function exportSpecificCategory(categoryType) {
             let targetClients = [];
             let fileName = "";
@@ -647,7 +659,6 @@
             XLSX.writeFile(wb, fileName);
         }
 
-        // EKSPOR LAPORAN KESELURUHAN TERFILTER
         function exportFilteredClients() {
             const searchVal = document.getElementById('search-input').value.toLowerCase();
             const trainerFilter = document.getElementById('filter-trainer').value;
@@ -702,7 +713,6 @@
             XLSX.writeFile(wb, `FTL_Client_Filtered_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
-        // RENDERING MODUL LAPORAN EVALUASI BERJALAN
         function renderEvaluationReport() {
             let grandTotalSessions = 0;
             let grandUsedSessions = 0;
@@ -1520,7 +1530,7 @@
 
         function downloadExcelTemplate() {
             const template = [
-                { "Nama Client": "MUTOHAROH MUTOHAROH", "Trainer": "Rindu Adji", "Paket": "3", "Sisa Sesi": 1 },
+                { "Nama Client": "MUTOHAROH MUTOHAROH", "Trainer": "Muhammad Alwansyah Arsathama", "Paket": "3", "Sisa Sesi": 1 },
                 { "Nama Client": "NASYA STEPHANIA RAMADHANI", "Trainer": "Rindu Adji", "Paket": "35", "Sisa Sesi": 25 }
             ];
             const ws = XLSX.utils.json_to_sheet(template);
