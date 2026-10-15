@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FTL Gym - Client Session Tracking System (Depok Lama)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS (xlsx) for Excel import/export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Tesseract.js for OCR Image Recognition -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- Chart.js for Dashboard Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDK v10 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        window.FirebaseSDK = { initializeApp, getFirestore, collection, getDocs, setDoc, doc, deleteDoc, writeBatch };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-sky-500 p-2 rounded-lg text-slate-900">
+                    <i data-lucide="dumbbell" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl text-white tracking-wide">FTL GYM TRACKER</h1>
+                    <p class="text-xs text-sky-400 font-medium">Session & Trainer Monitoring System - Depok Lama</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700">
+                <button id="nav-dashboard" onclick="switchView('dashboard')" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+                </button>
+                <button id="nav-clients" onclick="switchView('clients')" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2">
+                    <i data-lucide="users" class="w-4 h-4"></i> Data Client & Log
+                </button>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="openFirebaseConfigModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition text-amber-400">
+                    <i data-lucide="database" class="w-4 h-4"></i> Konfigurasi Firebase
+                </button>
+                <button onclick="exportData()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
+                    <i data-lucide="download" class="w-4 h-4 text-sky-400"></i> Backup Data (JSON)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- VIEW 1: DASHBOARD MONITORING -->
+        <div id="view-dashboard" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium">Total Member Active</p>
+                        <p id="dash-total-active" class="text-2xl font-bold text-white mt-1">0</p>
+                    </div>
+                    <div class="p-3 bg-sky-500/10 text-sky-400 rounded-lg"><i data-lucide="users" class="w-6 h-6"></i></div>
+                </div>
+                <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium">Total Trainer Active</p>
+                        <p id="dash-total-trainers" class="text-2xl font-bold text-white mt-1">0</p>
+                    </div>
+                    <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg"><i data-lucide="user-check" class="w-6 h-6"></i></div>
+                </div>
+                <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium">Sesi Segera Habis (&le; 3)</p>
+                        <p id="dash-warning-clients" class="text-2xl font-bold text-amber-400 mt-1">0</p>
+                    </div>
+                    <div class="p-3 bg-amber-500/10 text-amber-400 rounded-lg"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+                </div>
+                <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-slate-400 font-medium">Member Tidak Aktif / Habis</p>
+                        <p id="dash-inactive-clients" class="text-2xl font-bold text-rose-400 mt-1">0</p>
+                    </div>
+                    <div class="p-3 bg-rose-500/10 text-rose-400 rounded-lg"><i data-lucide="user-x" class="w-6 h-6"></i></div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 lg:col-span-2 space-y-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="text-sky-400 w-4 h-4"></i> Distribusi Member per Trainer
+                    </h3>
+                    <div class="h-64 relative"><canvas id="chart-trainer-dist"></canvas></div>
+                </div>
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="text-emerald-400 w-4 h-4"></i> Status Sesi Client
+                    </h3>
+                    <div class="h-64 relative flex items-center justify-center"><canvas id="chart-session-status"></canvas></div>
+                </div>
+            </div>
+
+            <!-- TABEL DAFTAR CLIENT HABIS & HAMPIR HABIS DI DASHBOARD -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Tabel Client Sesi Segera Habis (Sisa 1-3) -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                        <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i> Client Sesi Segera Habis (Sisa 1-3 Sesi)
+                        </h3>
+                        <span id="dash-warning-count-badge" class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
+                    </div>
+                    <div class="overflow-x-auto max-h-80 rounded-lg border border-slate-700">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-700 z-10">
+                                <tr>
+                                    <th class="p-2.5">Client & Paket</th>
+                                    <th class="p-2.5">Trainer</th>
+                                    <th class="p-2.5 text-center">Sisa</th>
+                                    <th class="p-2.5 text-center">Aksi WA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-table-warning" class="divide-y divide-slate-700/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tabel Client Sesi Sudah Habis (Sisa 0) -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                        <h3 class="text-sm font-bold text-rose-400 flex items-center gap-2">
+                            <i data-lucide="user-x" class="w-4 h-4"></i> Client Sesi Sudah Habis (Sisa 0)
+                        </h3>
+                        <span id="dash-inactive-count-badge" class="bg-rose-500/20 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
+                    </div>
+                    <div class="overflow-x-auto max-h-80 rounded-lg border border-slate-700">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-700 z-10">
+                                <tr>
+                                    <th class="p-2.5">Client & Paket</th>
+                                    <th class="p-2.5">Trainer</th>
+                                    <th class="p-2.5 text-center">Sisa</th>
+                                    <th class="p-2.5 text-center">Aksi WA</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-table-inactive" class="divide-y divide-slate-700/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: CLIENT DATA & LOG MANAGEMENT -->
+        <div id="view-clients" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Upload / Input Schedule Section -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 lg:col-span-1 space-y-6">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i data-lucide="upload-cloud" class="text-sky-400"></i> Log Sesi Harian
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Upload screenshot jadwal, file Excel, atau input sesi secara langsung.</p>
+                    </div>
+
+                    <!-- OCR Foto Schedule Section -->
+                    <div class="pt-2 border-t border-slate-700/60 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs font-semibold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="image" class="w-4 h-4"></i> Scan Foto Jadwal (OCR)
+                            </p>
+                            <span class="text-[10px] bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded font-mono">Bumi + Pintu</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400">Upload screenshot daily roster. Nama member yang terdeteksi di gambar akan dipotong sesinya otomatis.</p>
+                        <input type="file" id="ocr-photo-input" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-700 file:text-sky-400 hover:file:bg-slate-600">
+                        <button id="btn-scan-ocr" onclick="processScheduleOCR()" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold py-2 rounded-lg text-xs transition flex items-center justify-center gap-2">
+                            <i data-lucide="scan" class="w-4 h-4"></i> <span id="ocr-btn-label">Scan Foto & Potong Sesi</span>
+                        </button>
+                    </div>
+
+                    <!-- Manual Single Session Record -->
+                    <form id="session-form" onsubmit="handleSingleSession(event)" class="space-y-4 pt-4 border-t border-slate-700/60">
+                        <p class="text-xs font-semibold text-sky-400 uppercase tracking-wider">Input Sesi Manual</p>
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">Pilih Member</label>
+                            <select id="select-client" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-300 mb-1">Catatan Latihan</label>
+                            <input type="text" id="session-note" placeholder="Contoh: Leg Day / PT Smart" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                        </div>
+                        <button type="submit" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 rounded-lg text-xs transition flex items-center justify-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Potong 1 Sesi Otomatis
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Client Table Section -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 lg:col-span-2 space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i data-lucide="users" class="text-sky-400"></i> Daftar Client per Trainer
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-1">Gunakan kolom input angka di bawah untuk langsung mengubah angka sesi secara manual.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-bulk-delete" onclick="deleteSelectedClients()" class="hidden px-3 py-1.5 bg-rose-500 hover:bg-rose-400 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Terpilih (<span id="selected-count">0</span>)
+                            </button>
+                            <button onclick="openAddClientModal()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
+                                <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah / Import Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" id="search-input" oninput="renderClients()" placeholder="Cari Nama Member..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                        <select id="filter-trainer" onchange="renderClients()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                            <option value="ALL">Semua Trainer</option>
+                        </select>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto rounded-lg border border-slate-700">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-700">
+                                <tr>
+                                    <th class="p-3 w-8"><input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" class="rounded bg-slate-900 border-slate-700"></th>
+                                    <th class="p-3">Client & Paket</th>
+                                    <th class="p-3">Trainer</th>
+                                    <th class="p-3 text-center">Total Sesi</th>
+                                    <th class="p-3 text-center">Terpakai</th>
+                                    <th class="p-3 text-center">Sisa Sesi</th>
+                                    <th class="p-3 text-center">Status</th>
+                                    <th class="p-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="client-table-body" class="divide-y divide-slate-700/60"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-400 pt-2">
+                        <div class="flex items-center gap-2">
+                            <span>Tampilkan</span>
+                            <select id="page-size" onchange="changePageSize(this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none">
+                                <option value="10">10</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span>data per halaman</span>
+                        </div>
+                        <div id="pagination-info" class="font-medium text-slate-300">Menampilkan 0 - 0 dari 0 Member</div>
+                        <div class="flex items-center gap-1">
+                            <button id="btn-prev-page" onclick="changePage(-1)" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-white disabled:opacity-30 disabled:cursor-not-allowed">Previous</button>
+                            <span id="page-number-display" class="px-3 py-1 font-semibold text-sky-400">1 / 1</span>
+                            <button id="btn-next-page" onclick="changePage(1)" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-white disabled:opacity-30 disabled:cursor-not-allowed">Next</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Edit Member Detail -->
+    <div id="edit-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-md space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i data-lucide="edit-3" class="text-sky-400 w-5 h-5"></i> Edit Detail Member
+                </h3>
+                <button onclick="closeEditClientModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="edit-member-form" onsubmit="handleSaveEditClient(event)" class="space-y-3">
+                <input type="hidden" id="edit-client-id">
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Nama Member</label>
+                    <input type="text" id="edit-client-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Jenis Paket / Kode Paket</label>
+                    <input type="text" id="edit-client-package" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Trainer</label>
+                    <select id="edit-client-trainer" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">Total Paket Sesi</label>
+                        <input type="number" id="edit-client-total" required min="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">Sesi Terpakai</label>
+                        <input type="number" id="edit-client-used" required min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-amber-400 focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeEditClientModal()" class="px-3 py-1.5 bg-slate-700 text-slate-300 text-xs rounded-lg">Batal</button>
+                    <button type="submit" class="px-4 py-1.5 bg-sky-500 text-slate-950 font-semibold text-xs rounded-lg hover:bg-sky-400">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Add Single / Import Excel Member -->
+    <div id="add-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-lg space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i data-lucide="user-plus" class="text-sky-400 w-5 h-5"></i> Tambah / Import Member
+                </h3>
+                <button onclick="closeAddClientModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="flex border-b border-slate-700 text-xs font-semibold">
+                <button id="tab-btn-single" onclick="switchAddTab('single')" class="px-4 py-2 text-sky-400 border-b-2 border-sky-400 focus:outline-none">Tambah Satu Member</button>
+                <button id="tab-btn-excel" onclick="switchAddTab('excel')" class="px-4 py-2 text-slate-400 border-b-2 border-transparent hover:text-white focus:outline-none">Import Banyak via Excel</button>
+            </div>
+
+            <form id="add-single-form" onsubmit="handleAddSingleClient(event)" class="space-y-3 py-1">
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Nama Member</label>
+                    <input type="text" id="add-single-name" placeholder="Contoh: ARIESKA KURNIAWATY" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Jenis Paket</label>
+                    <input type="text" id="add-single-package" placeholder="Contoh: 35 / PT Smart" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">Trainer</label>
+                    <select id="add-single-trainer" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">Total Paket Sesi</label>
+                        <input type="number" id="add-single-total" value="35" required min="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1">Sesi Terpakai Awal</label>
+                        <input type="number" id="add-single-used" value="0" required min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-amber-400 focus:outline-none focus:border-sky-500">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAddClientModal()" class="px-3 py-1.5 bg-slate-700 text-slate-300 text-xs rounded-lg">Batal</button>
+                    <button type="submit" class="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs rounded-lg">Simpan Member</button>
+                </div>
+            </form>
+
+            <div id="add-excel-section" class="hidden space-y-4 py-2">
+                <p class="text-xs text-slate-300">Unggah file Excel berisi daftar member. Kolom wajib: <b>Nama Client, Trainer, Paket, Sisa Sesi</b>.</p>
+                <input type="file" id="batch-excel-file" accept=".xlsx, .xls" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-700 file:text-sky-400 hover:file:bg-slate-600">
+                <div class="flex justify-between items-center pt-2">
+                    <button onclick="downloadExcelTemplate()" class="text-xs text-sky-400 hover:underline flex items-center gap-1">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Download Template
+                    </button>
+                    <button onclick="processBatchExcelUpload()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs rounded-lg transition">Import & Sync Excel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Firebase Config -->
+    <div id="firebase-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="database" class="text-amber-400 w-5 h-5"></i> Pengaturan Firebase Firestore
+            </h3>
+            <p class="text-xs text-slate-400">Tempelkan konfigurasi JSON Firebase proyek Anda di bawah ini untuk sinkronisasi cloud real-time.</p>
+            <textarea id="firebase-config-input" rows="6" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "..."}' class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs font-mono text-white focus:outline-none focus:border-amber-500"></textarea>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeFirebaseModal()" class="px-3 py-1.5 bg-slate-700 text-slate-300 text-xs rounded-lg">Batal</button>
+                <button onclick="saveFirebaseConfig()" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-lg">Simpan & Hubungkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Application -->
+    <script>
+        const TRAINERS = [
+            "Arini Permata Pahwandi", "Bima Aminullah", "Caraka Vira Satriya",
+            "Davara Cahya Alamanda", "Dedy Mawansyah", "Mega Putri L. S.",
+            "M Fatihin", "Muhammad Alwansyah Arsathama", "Rindu Adji",
+            "Rosi Kurnia A.I.S.", "Wahyu Setiawan", "Yomi David A.S."
+        ];
+
+        let clients = JSON.parse(localStorage.getItem('ftl_clients')) || [];
+        let currentPage = 1;
+        let pageSize = 25;
+        let selectedClientIds = new Set();
+        let db = null;
+        let chartTrainerDistInstance = null;
+        let chartSessionStatusInstance = null;
+
+        function switchView(viewName) {
+            const dashView = document.getElementById('view-dashboard');
+            const clientView = document.getElementById('view-clients');
+            const navDash = document.getElementById('nav-dashboard');
+            const navClients = document.getElementById('nav-clients');
+
+            if (viewName === 'dashboard') {
+                dashView.classList.remove('hidden');
+                clientView.classList.add('hidden');
+                navDash.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2";
+                navClients.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2";
+                renderDashboard();
+            } else {
+                dashView.classList.add('hidden');
+                clientView.classList.remove('hidden');
+                navClients.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2";
+                navDash.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2";
+                renderClients();
+            }
+        }
+
+        function initApp() {
+            lucide.createIcons();
+            populateTrainerDropdowns();
+            renderClients();
+            renderDashboard();
+            initFirebaseFromStorage();
+        }
+
+        function populateTrainerDropdowns() {
+            const filterTrainer = document.getElementById('filter-trainer');
+            const editTrainer = document.getElementById('edit-client-trainer');
+            const addSingleTrainer = document.getElementById('add-single-trainer');
+
+            filterTrainer.innerHTML = '<option value="ALL">Semua Trainer</option>';
+            editTrainer.innerHTML = '';
+            addSingleTrainer.innerHTML = '';
+
+            TRAINERS.forEach(trainer => {
+                filterTrainer.innerHTML += `<option value="${trainer}">${trainer}</option>`;
+                editTrainer.innerHTML += `<option value="${trainer}">${trainer}</option>`;
+                addSingleTrainer.innerHTML += `<option value="${trainer}">${trainer}</option>`;
+            });
+        }
+
+        function parsePackageToNumber(pkgStr) {
+            if (!pkgStr) return 12;
+            const matches = String(pkgStr).match(/\d+/);
+            return matches ? parseInt(matches[0]) : 12;
+        }
+
+        // FUNGSI AUTO-COPY CHAT WA KE CLIPBOARD & BUKA WA WEB
+        async function sendWATrainerNotice(clientName, packageName, trainerName, remaining, type) {
+            let text = "";
+
+            if (type === 'WARNING') {
+                text = `Halo Coach *${trainerName}*,\n\nInfo dari FTL Gym Depok Lama:\nSesi latihan client Anda *${clientName}* (Paket: ${packageName}) tersisa *${remaining} Sesi* lagi.\n\nMohon diinfokan kepada client untuk persiapan renewal/re-assessment. Terima kasih!`;
+            } else if (type === 'EXPIRED') {
+                text = `Halo Coach *${trainerName}*,\n\nInfo dari FTL Gym Depok Lama:\nSesi latihan client Anda *${clientName}* (Paket: ${packageName}) *SUDAH HABIS (0 Sesi)*.\n\nMohon segera dihubungi kembali client tersebut untuk dilakukan *Assessment / Re-assessment* dan proses renewal paket. Terima kasih!`;
+            }
+
+            try {
+                // Salin teks ke clipboard otomatis
+                await navigator.clipboard.writeText(text);
+                alert(`Pesan untuk Coach ${trainerName} berhasil disalin ke Clipboard!\n\nSilakan 'Paste' (Ctrl+V) di obrolan WhatsApp yang Anda tuju.`);
+            } catch (err) {
+                console.error('Gagal menyalin pesan:', err);
+            }
+
+            // Buka WhatsApp Web
+            window.open('https://web.whatsapp.com/', '_blank');
+        }
+
+        async function processScheduleOCR() {
+            const fileInput = document.getElementById('ocr-photo-input');
+            const file = fileInput.files[0];
+            const btnLabel = document.getElementById('ocr-btn-label');
+            const btnScan = document.getElementById('btn-scan-ocr');
+
+            if (!file) {
+                return alert('Pilih foto screenshot jadwal terlebih dahulu!');
+            }
+
+            try {
+                btnScan.disabled = true;
+                btnLabel.innerText = 'Memindai Gambar (OCR)...';
+
+                const worker = await Tesseract.createWorker('ind');
+                const ret = await worker.recognize(file);
+                await worker.terminate();
+
+                let rawOCR = ret.data.text.toUpperCase();
+                let cleanOCRText = rawOCR
+                    .replace(/-\s*PT\s*SMART/g, ' ')
+                    .replace(/-\s*PT\s*BLUE/g, ' ')
+                    .replace(/-\s*PT\s*ADVANCE/g, ' ')
+                    .replace(/-\s*REGULAR/g, ' ')
+                    .replace(/PT\s*SMART/g, ' ')
+                    .replace(/PT\s*BLUE/g, ' ')
+                    .replace(/PT\s*ADVANCE/g, ' ')
+                    .replace(/REGULAR/g, ' ')
+                    .replace(/STAFF\s*CLAS/g, ' ')
+                    .replace(/STAF\s*CLAS/g, ' ')
+                    .replace(/AVAILABLE/g, ' ')
+                    .replace(/ISTIRAHAT/g, ' ')
+                    .replace(/[^A-Z0-9\s]/g, ' ');
+
+                let deductedCount = 0;
+                let matchedNames = [];
+
+                clients.forEach(c => {
+                    const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
+                    if (rem > 0 && c.name) {
+                        const nameParts = c.name.toUpperCase().trim().split(' ').filter(p => p.length >= 3);
+                        if (nameParts.length > 0) {
+                            let matchesCount = 0;
+                            nameParts.forEach(part => {
+                                if (cleanOCRText.includes(part)) matchesCount++;
+                            });
+
+                            if (matchesCount >= 1) {
+                                c.used = (c.used || 0) + 1;
+                                deductedCount++;
+                                matchedNames.push(c.name);
+                            }
+                        }
+                    }
+                });
+
+                saveToStorage();
+                btnScan.disabled = false;
+                btnLabel.innerText = 'Scan Foto & Potong Sesi';
+
+                if (deductedCount > 0) {
+                    alert(`Berhasil memotong 1 sesi untuk ${deductedCount} member:\n- ${matchedNames.join('\n- ')}`);
+                } else {
+                    alert('Pemindaian selesai. Tidak ada nama member dari database yang cocok dalam gambar jadwal tersebut.');
+                }
+            } catch (err) {
+                console.error('OCR Error:', err);
+                btnScan.disabled = false;
+                btnLabel.innerText = 'Scan Foto & Potong Sesi';
+                alert('Gagal memproses gambar OCR. Pastikan format gambar jelas!');
+            }
+        }
+
+        function handleSingleSession(e) {
+            e.preventDefault();
+            const clientId = parseInt(document.getElementById('select-client').value);
+            if (!clientId) return alert('Pilih member terlebih dahulu!');
+
+            const client = clients.find(c => c.id === clientId);
+            if (client) {
+                const rem = (client.total || parsePackageToNumber(client.package)) - (client.used || 0);
+                if (rem > 0) {
+                    client.used = (client.used || 0) + 1;
+                    saveToStorage();
+                    document.getElementById('session-form').reset();
+                    alert(`Sesi untuk ${client.name} berhasil dipotong 1 sesi!`);
+                } else {
+                    alert('Sesi member ini sudah habis!');
+                }
+            }
+        }
+
+        function switchAddTab(tab) {
+            const btnSingle = document.getElementById('tab-btn-single');
+            const btnExcel = document.getElementById('tab-btn-excel');
+            const formSingle = document.getElementById('add-single-form');
+            const sectionExcel = document.getElementById('add-excel-section');
+
+            if (tab === 'single') {
+                btnSingle.className = "px-4 py-2 text-sky-400 border-b-2 border-sky-400 focus:outline-none";
+                btnExcel.className = "px-4 py-2 text-slate-400 border-b-2 border-transparent hover:text-white focus:outline-none";
+                formSingle.classList.remove('hidden');
+                sectionExcel.classList.add('hidden');
+            } else {
+                btnExcel.className = "px-4 py-2 text-sky-400 border-b-2 border-sky-400 focus:outline-none";
+                btnSingle.className = "px-4 py-2 text-slate-400 border-b-2 border-transparent hover:text-white focus:outline-none";
+                sectionExcel.classList.remove('hidden');
+                formSingle.classList.add('hidden');
+            }
+        }
+
+        function handleAddSingleClient(e) {
+            e.preventDefault();
+            const name = document.getElementById('add-single-name').value.toUpperCase().trim();
+            const pkgStr = document.getElementById('add-single-package').value.trim();
+            const trainer = document.getElementById('add-single-trainer').value;
+            const total = parseInt(document.getElementById('add-single-total').value) || 35;
+            const used = parseInt(document.getElementById('add-single-used').value) || 0;
+
+            const newClient = {
+                id: Date.now(),
+                name: name,
+                package: pkgStr,
+                trainer: trainer,
+                total: total,
+                used: used
+            };
+
+            clients.push(newClient);
+            saveToStorage();
+            closeAddClientModal();
+            document.getElementById('add-single-form').reset();
+            alert(`Berhasil menambahkan member baru: ${name}`);
+        }
+
+        function renderDashboard() {
+            const activeClients = clients.filter(c => ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) > 0);
+            const warningClients = clients.filter(c => {
+                const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
+                return rem <= 3 && rem > 0;
+            });
+            const inactiveClients = clients.filter(c => ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) <= 0);
+
+            document.getElementById('dash-total-active').innerText = activeClients.length;
+            document.getElementById('dash-total-trainers').innerText = TRAINERS.length;
+            document.getElementById('dash-warning-clients').innerText = warningClients.length;
+            document.getElementById('dash-inactive-clients').innerText = inactiveClients.length;
+
+            document.getElementById('dash-warning-count-badge').innerText = `${warningClients.length} Member`;
+            document.getElementById('dash-inactive-count-badge').innerText = `${inactiveClients.length} Member`;
+
+            // Tabel Client Sesi Hampir Habis (Sisa 1-3 Sesi)
+            const tableWarningBody = document.getElementById('dash-table-warning');
+            tableWarningBody.innerHTML = '';
+            if (warningClients.length === 0) {
+                tableWarningBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-500 italic">Tidak ada member sesi hampir habis</td></tr>';
+            } else {
+                warningClients.forEach(c => {
+                    const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
+                    const safeName = c.name.replace(/'/g, "\\'");
+                    const safeTrainer = c.trainer.replace(/'/g, "\\'");
+                    const safePkg = (c.package || 'PT Smart').replace(/'/g, "\\'");
+
+                    tableWarningBody.innerHTML += `
+                        <tr class="hover:bg-slate-700/30">
+                            <td class="p-2.5">
+                                <div class="font-semibold text-white">${c.name}</div>
+                                <div class="text-[10px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
+                            </td>
+                            <td class="p-2.5 text-slate-300 text-xs">${c.trainer}</td>
+                            <td class="p-2.5 text-center font-bold text-amber-400">${rem} Sesi</td>
+                            <td class="p-2.5 text-center">
+                                <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, 'WARNING')" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-semibold text-[10px] rounded flex items-center justify-center gap-1 mx-auto transition" title="Copy Pesan WA & Buka WhatsApp">
+                                    <i data-lucide="message-square" class="w-3 h-3"></i> Chat WA
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Tabel Client Sesi Sudah Habis (Sisa 0)
+            const tableInactiveBody = document.getElementById('dash-table-inactive');
+            tableInactiveBody.innerHTML = '';
+            if (inactiveClients.length === 0) {
+                tableInactiveBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-500 italic">Tidak ada member sesi habis</td></tr>';
+            } else {
+                inactiveClients.forEach(c => {
+                    const safeName = c.name.replace(/'/g, "\\'");
+                    const safeTrainer = c.trainer.replace(/'/g, "\\'");
+                    const safePkg = (c.package || 'PT Smart').replace(/'/g, "\\'");
+
+                    tableInactiveBody.innerHTML += `
+                        <tr class="hover:bg-slate-700/30">
+                            <td class="p-2.5">
+                                <div class="font-semibold text-white">${c.name}</div>
+                                <div class="text-[10px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
+                            </td>
+                            <td class="p-2.5 text-slate-300 text-xs">${c.trainer}</td>
+                            <td class="p-2.5 text-center font-bold text-rose-400">0 Sesi</td>
+                            <td class="p-2.5 text-center">
+                                <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', 0, 'EXPIRED')" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-semibold text-[10px] rounded flex items-center justify-center gap-1 mx-auto transition" title="Copy Pesan WA & Buka WhatsApp">
+                                    <i data-lucide="message-square" class="w-3 h-3"></i> Chat WA
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            renderCharts(activeClients.length, warningClients.length, inactiveClients.length);
+            lucide.createIcons();
+        }
+
+        function renderClients() {
+            const tableBody = document.getElementById('client-table-body');
+            const selectClient = document.getElementById('select-client');
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+            const trainerFilter = document.getElementById('filter-trainer').value;
+
+            tableBody.innerHTML = '';
+            selectClient.innerHTML = '<option value="">-- Pilih Member --</option>';
+
+            const filteredClients = clients.filter(c => {
+                const matchName = String(c.name || '').toLowerCase().includes(searchVal);
+                const matchTrainer = trainerFilter === 'ALL' || c.trainer === trainerFilter;
+                return matchName && matchTrainer;
+            });
+
+            const totalRecords = filteredClients.length;
+            const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, totalRecords);
+            const paginatedClients = filteredClients.slice(startIndex, endIndex);
+
+            document.getElementById('pagination-info').innerText = `Menampilkan ${totalRecords === 0 ? 0 : startIndex + 1} - ${endIndex} dari ${totalRecords} Member`;
+            document.getElementById('page-number-display').innerText = `${currentPage} / ${totalPages}`;
+            document.getElementById('btn-prev-page').disabled = currentPage <= 1;
+            document.getElementById('btn-next-page').disabled = currentPage >= totalPages;
+
+            const allPaginatedSelected = paginatedClients.length > 0 && paginatedClients.every(c => selectedClientIds.has(c.id));
+            document.getElementById('select-all-checkbox').checked = allPaginatedSelected;
+
+            paginatedClients.forEach((c) => {
+                const total = c.total || parsePackageToNumber(c.package);
+                const used = c.used || 0;
+                const remaining = total - used;
+
+                let statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Aktif</span>';
+                if (remaining <= 0) {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Habis</span>';
+                } else if (remaining <= 3) {
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Hampir Habis</span>';
+                }
+
+                tableBody.innerHTML += `
+                    <tr class="hover:bg-slate-700/30 transition">
+                        <td class="p-3"><input type="checkbox" onchange="toggleSelectClient(${c.id})" ${selectedClientIds.has(c.id) ? 'checked' : ''} class="rounded bg-slate-900 border-slate-700"></td>
+                        <td class="p-3">
+                            <div class="font-semibold text-white">${c.name}</div>
+                            <div class="text-[10px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
+                        </td>
+                        <td class="p-3 text-slate-300 text-xs">${c.trainer}</td>
+                        <td class="p-3 text-center">
+                            <input type="number" value="${total}" min="1" onchange="updateClientTotal(${c.id}, this.value)" class="w-16 text-center bg-slate-900 border border-slate-700 rounded py-1 text-xs text-white focus:outline-none focus:border-sky-500">
+                        </td>
+                        <td class="p-3 text-center">
+                            <input type="number" value="${used}" min="0" onchange="updateClientUsed(${c.id}, this.value)" class="w-16 text-center bg-slate-900 border border-slate-700 rounded py-1 text-xs font-bold text-amber-400 focus:outline-none focus:border-sky-500">
+                        </td>
+                        <td class="p-3 text-center font-bold ${remaining <= 3 ? 'text-amber-400' : 'text-sky-400'}">${remaining}</td>
+                        <td class="p-3 text-center">${statusBadge}</td>
+                        <td class="p-3 text-center space-x-1">
+                            <button onclick="openEditClientModal(${c.id})" class="p-1 bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 rounded transition" title="Edit Detail Member">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deductSession(${c.id})" ${remaining <= 0 ? 'disabled' : ''} class="p-1 bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-slate-950 rounded transition disabled:opacity-30" title="Potong 1 Sesi">
+                                <i data-lucide="minus-circle" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteClient(${c.id})" class="p-1 bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white rounded transition" title="Hapus Member">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                if (remaining > 0) {
+                    selectClient.innerHTML += `<option value="${c.id}">${c.name} (${c.trainer} - Sisa: ${remaining})</option>`;
+                }
+            });
+
+            updateBulkDeleteButton();
+            lucide.createIcons();
+        }
+
+        function renderCharts(activeCount, warningCount, inactiveCount) {
+            const trainerActiveCounts = TRAINERS.map(t => clients.filter(c => c.trainer === t && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) > 3).length);
+            const trainerWarningCounts = TRAINERS.map(t => clients.filter(c => c.trainer === t && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) <= 3 && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) > 0).length);
+            const trainerInactiveCounts = TRAINERS.map(t => clients.filter(c => c.trainer === t && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) <= 0).length);
+
+            const ctx1 = document.getElementById('chart-trainer-dist').getContext('2d');
+            if (chartTrainerDistInstance) chartTrainerDistInstance.destroy();
+
+            chartTrainerDistInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: TRAINERS.map(t => t.split(' ')[0]),
+                    datasets: [
+                        { label: 'Aktif (>3)', data: trainerActiveCounts, backgroundColor: '#38bdf8' },
+                        { label: 'Akan Habis (1-3)', data: trainerWarningCounts, backgroundColor: '#fbbf24' },
+                        { label: 'Habis (0)', data: trainerInactiveCounts, backgroundColor: '#f43f5e' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+                        y: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+                    },
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } }
+                }
+            });
+
+            const ctx2 = document.getElementById('chart-session-status').getContext('2d');
+            if (chartSessionStatusInstance) chartSessionStatusInstance.destroy();
+
+            chartSessionStatusInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Aktif (>3)', 'Akan Habis (1-3)', 'Habis (0)'],
+                    datasets: [{
+                        data: [Math.max(0, activeCount - warningCount), warningCount, inactiveCount],
+                        backgroundColor: ['#10b981', '#fbbf24', '#f43f5e'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } }
+                }
+            });
+        }
+
+        function toggleSelectClient(id) {
+            if (selectedClientIds.has(id)) {
+                selectedClientIds.delete(id);
+            } else {
+                selectedClientIds.add(id);
+            }
+            renderClients();
+        }
+
+        function toggleSelectAll(masterCheckbox) {
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+            const trainerFilter = document.getElementById('filter-trainer').value;
+
+            const filteredClients = clients.filter(c => {
+                const matchName = String(c.name || '').toLowerCase().includes(searchVal);
+                const matchTrainer = trainerFilter === 'ALL' || c.trainer === trainerFilter;
+                return matchName && matchTrainer;
+            });
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredClients.length);
+            const paginatedClients = filteredClients.slice(startIndex, endIndex);
+
+            if (masterCheckbox.checked) {
+                paginatedClients.forEach(c => selectedClientIds.add(c.id));
+            } else {
+                paginatedClients.forEach(c => selectedClientIds.delete(c.id));
+            }
+            renderClients();
+        }
+
+        function updateBulkDeleteButton() {
+            const btn = document.getElementById('btn-bulk-delete');
+            const countLabel = document.getElementById('selected-count');
+            if (selectedClientIds.size > 0) {
+                btn.classList.remove('hidden');
+                countLabel.innerText = selectedClientIds.size;
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
+
+        async function deleteSelectedClients() {
+            if (selectedClientIds.size === 0) return;
+            if (confirm(`Apakah Anda yakin ingin menghapus ${selectedClientIds.size} member terpilih?`)) {
+                const idsToDelete = Array.from(selectedClientIds);
+                clients = clients.filter(c => !selectedClientIds.has(c.id));
+                
+                if (db && window.FirebaseSDK) {
+                    try {
+                        const batch = window.FirebaseSDK.writeBatch(db);
+                        idsToDelete.forEach(id => {
+                            const ref = window.FirebaseSDK.doc(db, "clients", String(id));
+                            batch.delete(ref);
+                        });
+                        await batch.commit();
+                    } catch (e) {
+                        console.log('Firebase Bulk Delete error:', e);
+                    }
+                }
+
+                selectedClientIds.clear();
+                saveToStorage();
+            }
+        }
+
+        function openEditClientModal(id) {
+            const client = clients.find(c => c.id === id);
+            if (!client) return;
+
+            document.getElementById('edit-client-id').value = client.id;
+            document.getElementById('edit-client-name').value = client.name;
+            document.getElementById('edit-client-package').value = client.package || 'PT Smart';
+            document.getElementById('edit-client-trainer').value = client.trainer;
+            document.getElementById('edit-client-total').value = client.total || parsePackageToNumber(client.package);
+            document.getElementById('edit-client-used').value = client.used || 0;
+
+            document.getElementById('edit-modal').classList.remove('hidden');
+            document.getElementById('edit-modal').classList.add('flex');
+        }
+
+        function closeEditClientModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+            document.getElementById('edit-modal').classList.remove('flex');
+        }
+
+        function handleSaveEditClient(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('edit-client-id').value);
+            const client = clients.find(c => c.id === id);
+
+            if (client) {
+                client.name = document.getElementById('edit-client-name').value.toUpperCase().trim();
+                client.package = document.getElementById('edit-client-package').value.trim();
+                client.trainer = document.getElementById('edit-client-trainer').value;
+                client.total = parseInt(document.getElementById('edit-client-total').value) || 12;
+                client.used = parseInt(document.getElementById('edit-client-used').value) || 0;
+
+                saveToStorage();
+                closeEditClientModal();
+                alert('Detail member berhasil diperbarui!');
+            }
+        }
+
+        function updateClientUsed(id, val) {
+            const client = clients.find(c => c.id === id);
+            if (client) {
+                client.used = parseInt(val) || 0;
+                saveToStorage();
+            }
+        }
+
+        function updateClientTotal(id, val) {
+            const client = clients.find(c => c.id === id);
+            if (client) {
+                client.total = parseInt(val) || 12;
+                saveToStorage();
+            }
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            renderClients();
+        }
+
+        function changePageSize(size) {
+            pageSize = parseInt(size);
+            currentPage = 1;
+            renderClients();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('ftl_clients', JSON.stringify(clients));
+            if (db && window.FirebaseSDK) {
+                syncToFirebase();
+            }
+            renderClients();
+            renderDashboard();
+        }
+
+        function processBatchExcelUpload() {
+            const fileInput = document.getElementById('batch-excel-file');
+            const file = fileInput.files[0];
+            if (!file) return alert('Pilih file Excel member terlebih dahulu!');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+                    if (!rows || rows.length === 0) {
+                        return alert('File Excel kosong atau tidak dapat dibaca!');
+                    }
+
+                    clients = [];
+                    rows.forEach((r, idx) => {
+                        let nameVal = "", trainerVal = "", pkgVal = "", sisaVal = null;
+
+                        Object.keys(r).forEach(key => {
+                            const cleanKey = key.trim().toLowerCase();
+                            if (cleanKey.includes('nama') || cleanKey.includes('client') || cleanKey.includes('member')) {
+                                if (!nameVal) nameVal = r[key];
+                            }
+                            if (cleanKey.includes('trainer') || cleanKey.includes('pt')) {
+                                if (!trainerVal) trainerVal = r[key];
+                            }
+                            if (cleanKey.includes('paket') || cleanKey.includes('package')) {
+                                if (!pkgVal) pkgVal = r[key];
+                            }
+                            if (cleanKey.includes('sisa') || cleanKey.includes('remaining')) {
+                                if (sisaVal === null) sisaVal = r[key];
+                            }
+                        });
+
+                        if (!nameVal && r[Object.keys(r)[0]]) nameVal = r[Object.keys(r)[0]];
+
+                        if (nameVal && String(nameVal).trim() !== "") {
+                            const pkgStr = String(pkgVal || '35');
+                            const total = parsePackageToNumber(pkgStr);
+                            const parsedSisa = (sisaVal !== null && sisaVal !== "") ? parseInt(sisaVal) : total;
+                            const used = Math.max(0, total - (isNaN(parsedSisa) ? total : parsedSisa));
+
+                            clients.push({
+                                id: Date.now() + idx,
+                                name: String(nameVal).toUpperCase().trim(),
+                                package: pkgStr,
+                                trainer: String(trainerVal || 'Rindu Adji').trim(),
+                                total: total,
+                                used: used
+                            });
+                        }
+                    });
+
+                    saveToStorage();
+                    closeAddClientModal();
+                    alert(`Berhasil mengimpor & mensinkronkan ${clients.length} member dari file Excel!`);
+                } catch (err) {
+                    console.error('Excel Parser Error:', err);
+                    alert('Gagal mengurai file Excel. Pastikan file berformat .xlsx / .xls');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function deductSession(id) {
+            const client = clients.find(c => c.id === id);
+            if (client && ((client.total || parsePackageToNumber(client.package)) - (client.used || 0)) > 0) {
+                client.used = (client.used || 0) + 1;
+                saveToStorage();
+            }
+        }
+
+        async function deleteClient(id) {
+            const client = clients.find(c => c.id === id);
+            if (client && confirm(`Hapus member ${client.name}?`)) {
+                clients = clients.filter(c => c.id !== id);
+                selectedClientIds.delete(id);
+                
+                if (db && window.FirebaseSDK) {
+                    try {
+                        await window.FirebaseSDK.deleteDoc(window.FirebaseSDK.doc(db, "clients", String(id)));
+                    } catch (e) {
+                        console.log('Firebase delete error:', e);
+                    }
+                }
+                saveToStorage();
+            }
+        }
+
+        function openAddClientModal() {
+            document.getElementById('add-modal').classList.remove('hidden');
+            document.getElementById('add-modal').classList.add('flex');
+            switchAddTab('single');
+        }
+
+        function closeAddClientModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('add-modal').classList.remove('flex');
+        }
+
+        function openFirebaseConfigModal() {
+            document.getElementById('firebase-modal').classList.remove('hidden');
+            document.getElementById('firebase-modal').classList.add('flex');
+        }
+
+        function closeFirebaseModal() {
+            document.getElementById('firebase-modal').classList.add('hidden');
+            document.getElementById('firebase-modal').classList.remove('flex');
+        }
+
+        function saveFirebaseConfig() {
+            const val = document.getElementById('firebase-config-input').value;
+            try {
+                const config = JSON.parse(val);
+                localStorage.setItem('ftl_firebase_config', JSON.stringify(config));
+                initFirebaseFromStorage();
+                closeFirebaseModal();
+                alert('Konfigurasi Firebase berhasil disimpan dan dihubungkan!');
+            } catch (e) {
+                alert('Format JSON Konfigurasi Firebase tidak valid!');
+            }
+        }
+
+        function initFirebaseFromStorage() {
+            const cfg = localStorage.getItem('ftl_firebase_config');
+            if (cfg && window.FirebaseSDK) {
+                try {
+                    const config = JSON.parse(cfg);
+                    const app = window.FirebaseSDK.initializeApp(config);
+                    db = window.FirebaseSDK.getFirestore(app);
+                    fetchFromFirebase();
+                } catch (e) {
+                    console.log('Firebase Init error:', e);
+                }
+            }
+        }
+
+        async function fetchFromFirebase() {
+            if (!db || !window.FirebaseSDK) return;
+            try {
+                const querySnapshot = await window.FirebaseSDK.getDocs(window.FirebaseSDK.collection(db, "clients"));
+                const fetched = [];
+                querySnapshot.forEach((doc) => {
+                    fetched.push(doc.data());
+                });
+                if (fetched.length > 0) {
+                    clients = fetched;
+                    localStorage.setItem('ftl_clients', JSON.stringify(clients));
+                    renderClients();
+                    renderDashboard();
+                }
+            } catch (e) {
+                console.log('Firestore fetch error:', e);
+            }
+        }
+
+        async function syncToFirebase() {
+            if (!db || !window.FirebaseSDK) return;
+            try {
+                const batch = window.FirebaseSDK.writeBatch(db);
+                clients.forEach(c => {
+                    const ref = window.FirebaseSDK.doc(db, "clients", String(c.id));
+                    batch.set(ref, c);
+                });
+                await batch.commit();
+            } catch (e) {
+                console.log('Firestore sync error:', e);
+            }
+        }
+
+        function downloadExcelTemplate() {
+            const template = [
+                { "Nama Client": "MUTOHAROH MUTOHAROH", "Trainer": "Rindu Adji", "Paket": "3", "Sisa Sesi": 1 },
+                { "Nama Client": "NASYA STEPHANIA RAMADHANI", "Trainer": "Rindu Adji", "Paket": "35", "Sisa Sesi": 25 }
+            ];
+            const ws = XLSX.utils.json_to_sheet(template);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Template_Member");
+            XLSX.writeFile(wb, "FTL_Template_Member.xlsx");
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(clients, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `FTL_Client_Sessions_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
