@@ -107,7 +107,7 @@
                 </div>
             </div>
 
-            <!-- Charts (Lebih Luas) -->
+            <!-- Charts -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 lg:col-span-2 space-y-3">
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
@@ -419,6 +419,21 @@
         let chartTrainerDistInstance = null;
         let chartSessionStatusInstance = null;
 
+        // FUNGSI PENCocokan NAMA TRAINER OTOMATIS (SMART MATCHING)
+        function matchTrainerName(rawName) {
+            if (!rawName) return "Lainnya / Belum Ditentukan";
+            const clean = String(rawName).trim().toLowerCase();
+            
+            for (let t of TRAINERS) {
+                const tLower = t.toLowerCase();
+                const firstName = tLower.split(' ')[0];
+                if (clean === tLower || clean.includes(firstName)) {
+                    return t;
+                }
+            }
+            return String(rawName).trim(); // Kembalikan nama aslinya jika tidak pas
+        }
+
         // FUNGSI JAM REALTIME
         function updateRealtimeClock() {
             const now = new Date();
@@ -469,7 +484,6 @@
             renderDashboard();
             initFirebaseFromStorage();
 
-            // Jalankan Jam Realtime
             updateRealtimeClock();
             setInterval(updateRealtimeClock, 1000);
         }
@@ -488,6 +502,10 @@
                 editTrainer.innerHTML += `<option value="${trainer}">${trainer}</option>`;
                 addSingleTrainer.innerHTML += `<option value="${trainer}">${trainer}</option>`;
             });
+
+            filterTrainer.innerHTML += '<option value="OTHER">Lainnya / Belum Ditentukan</option>';
+            editTrainer.innerHTML += '<option value="Lainnya / Belum Ditentukan">Lainnya / Belum Ditentukan</option>';
+            addSingleTrainer.innerHTML += '<option value="Lainnya / Belum Ditentukan">Lainnya / Belum Ditentukan</option>';
         }
 
         function parsePackageToNumber(pkgStr) {
@@ -496,7 +514,6 @@
             return matches ? parseInt(matches[0]) : 12;
         }
 
-        // FUNGSI AUTO-COPY CHAT WA KE CLIPBOARD & BUKA WA WEB
         async function sendWATrainerNotice(clientName, packageName, trainerName, remaining, type) {
             let text = "";
 
@@ -676,7 +693,7 @@
                 warningClients.forEach(c => {
                     const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
                     const safeName = c.name.replace(/'/g, "\\'");
-                    const safeTrainer = c.trainer.replace(/'/g, "\\'");
+                    const safeTrainer = (c.trainer || 'Trainer').replace(/'/g, "\\'");
                     const safePkg = (c.package || 'PT Smart').replace(/'/g, "\\'");
 
                     tableWarningBody.innerHTML += `
@@ -685,7 +702,7 @@
                                 <div class="font-semibold text-white">${c.name}</div>
                                 <div class="text-[10px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
                             </td>
-                            <td class="p-2.5 text-slate-300 text-xs">${c.trainer}</td>
+                            <td class="p-2.5 text-slate-300 text-xs">${c.trainer || 'Lainnya'}</td>
                             <td class="p-2.5 text-center font-bold text-amber-400">${rem} Sesi</td>
                             <td class="p-2.5 text-center">
                                 <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, 'WARNING')" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-semibold text-[10px] rounded flex items-center justify-center gap-1 mx-auto transition" title="Copy Pesan WA & Buka WhatsApp">
@@ -705,7 +722,7 @@
             } else {
                 inactiveClients.forEach(c => {
                     const safeName = c.name.replace(/'/g, "\\'");
-                    const safeTrainer = c.trainer.replace(/'/g, "\\'");
+                    const safeTrainer = (c.trainer || 'Trainer').replace(/'/g, "\\'");
                     const safePkg = (c.package || 'PT Smart').replace(/'/g, "\\'");
 
                     tableInactiveBody.innerHTML += `
@@ -714,7 +731,7 @@
                                 <div class="font-semibold text-white">${c.name}</div>
                                 <div class="text-[10px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
                             </td>
-                            <td class="p-2.5 text-slate-300 text-xs">${c.trainer}</td>
+                            <td class="p-2.5 text-slate-300 text-xs">${c.trainer || 'Lainnya'}</td>
                             <td class="p-2.5 text-center font-bold text-rose-400">0 Sesi</td>
                             <td class="p-2.5 text-center">
                                 <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', 0, 'EXPIRED')" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-semibold text-[10px] rounded flex items-center justify-center gap-1 mx-auto transition" title="Copy Pesan WA & Buka WhatsApp">
@@ -741,7 +758,12 @@
 
             const filteredClients = clients.filter(c => {
                 const matchName = String(c.name || '').toLowerCase().includes(searchVal);
-                const matchTrainer = trainerFilter === 'ALL' || c.trainer === trainerFilter;
+                let matchTrainer = true;
+                if (trainerFilter === 'OTHER') {
+                    matchTrainer = !TRAINERS.includes(c.trainer);
+                } else if (trainerFilter !== 'ALL') {
+                    matchTrainer = c.trainer === trainerFilter;
+                }
                 return matchName && matchTrainer;
             });
 
@@ -780,7 +802,7 @@
                             <div class="font-semibold text-white">${c.name}</div>
                             <div class="text-[10px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
                         </td>
-                        <td class="p-3 text-slate-300 text-xs">${c.trainer}</td>
+                        <td class="p-3 text-slate-300 text-xs">${c.trainer || 'Lainnya'}</td>
                         <td class="p-3 text-center">
                             <input type="number" value="${total}" min="1" onchange="updateClientTotal(${c.id}, this.value)" class="w-16 text-center bg-slate-900 border border-slate-700 rounded py-1 text-xs text-white focus:outline-none focus:border-sky-500">
                         </td>
@@ -877,7 +899,12 @@
 
             const filteredClients = clients.filter(c => {
                 const matchName = String(c.name || '').toLowerCase().includes(searchVal);
-                const matchTrainer = trainerFilter === 'ALL' || c.trainer === trainerFilter;
+                let matchTrainer = true;
+                if (trainerFilter === 'OTHER') {
+                    matchTrainer = !TRAINERS.includes(c.trainer);
+                } else if (trainerFilter !== 'ALL') {
+                    matchTrainer = c.trainer === trainerFilter;
+                }
                 return matchName && matchTrainer;
             });
 
@@ -935,7 +962,7 @@
             document.getElementById('edit-client-id').value = client.id;
             document.getElementById('edit-client-name').value = client.name;
             document.getElementById('edit-client-package').value = client.package || 'PT Smart';
-            document.getElementById('edit-client-trainer').value = client.trainer;
+            document.getElementById('edit-client-trainer').value = client.trainer || TRAINERS[0];
             document.getElementById('edit-client-total').value = client.total || parsePackageToNumber(client.package);
             document.getElementById('edit-client-used').value = client.used || 0;
 
@@ -1051,7 +1078,7 @@
                                 id: Date.now() + idx,
                                 name: String(nameVal).toUpperCase().trim(),
                                 package: pkgStr,
-                                trainer: String(trainerVal || 'Rindu Adji').trim(),
+                                trainer: matchTrainerName(trainerVal), // Memakai Smart Matching
                                 total: total,
                                 used: used
                             });
@@ -1080,7 +1107,7 @@
         async function deleteClient(id) {
             const client = clients.find(c => c.id === id);
             if (client && confirm(`Hapus member ${client.name}?`)) {
-                clients = clients.filter(c => c.id !== id);
+                clients = clients.filter(c => !selectedClientIds.has(c.id) && c.id !== id);
                 selectedClientIds.delete(id);
                 
                 if (db && window.FirebaseSDK) {
@@ -1148,7 +1175,11 @@
                 const querySnapshot = await window.FirebaseSDK.getDocs(window.FirebaseSDK.collection(db, "clients"));
                 const fetched = [];
                 querySnapshot.forEach((doc) => {
-                    fetched.push(doc.data());
+                    const data = doc.data();
+                    if (data.trainer) {
+                        data.trainer = matchTrainerName(data.trainer);
+                    }
+                    fetched.push(data);
                 });
                 if (fetched.length > 0) {
                     clients = fetched;
