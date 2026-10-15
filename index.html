@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FTL Gym - Client Session Tracking System (Depok Lama)</title>
+    <title>FTL Gym - Advanced Client Tracking & Evaluation System</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- SheetJS (xlsx) for Excel import/export -->
+    <!-- SheetJS (xlsx) for Excel export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Tesseract.js for OCR Image Recognition -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -36,8 +36,8 @@
                     <i data-lucide="dumbbell" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-xl text-white tracking-wide">FTL GYM TRACKER</h1>
-                    <p class="text-xs text-sky-400 font-medium">Session & Trainer Monitoring System - Depok Lama</p>
+                    <h1 class="font-bold text-xl text-white tracking-wide">FTL GYM TRACKER PRO</h1>
+                    <p class="text-xs text-sky-400 font-medium">Session & Performance Evaluation System - Depok Lama</p>
                 </div>
             </div>
 
@@ -46,14 +46,17 @@
                 <i data-lucide="clock" class="w-4 h-4 text-sky-400"></i>
                 <div class="flex flex-col text-right">
                     <span id="realtime-clock" class="font-bold text-sky-300 tracking-wider">00:00:00 WIB</span>
-                    <span id="realtime-date" class="text-[10px] text-slate-400">Kamis, 15 Okt 2026</span>
+                    <span id="realtime-date" class="text-[10px] text-slate-400">Loading...</span>
                 </div>
             </div>
 
             <!-- Navigation Tabs -->
             <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700">
                 <button id="nav-dashboard" onclick="switchView('dashboard')" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Monitoring
+                </button>
+                <button id="nav-evaluation" onclick="switchView('evaluation')" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2">
+                    <i data-lucide="line-chart" class="w-4 h-4"></i> Laporan Evaluasi
                 </button>
                 <button id="nav-clients" onclick="switchView('clients')" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2">
                     <i data-lucide="users" class="w-4 h-4"></i> Data Client & Log
@@ -62,20 +65,21 @@
 
             <div class="flex items-center space-x-2">
                 <button onclick="openFirebaseConfigModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition text-amber-400">
-                    <i data-lucide="database" class="w-4 h-4"></i> Konfigurasi Firebase
+                    <i data-lucide="database" class="w-4 h-4"></i> Firebase Cloud
                 </button>
                 <button onclick="exportData()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
-                    <i data-lucide="download" class="w-4 h-4 text-sky-400"></i> Backup Data (JSON)
+                    <i data-lucide="download" class="w-4 h-4 text-sky-400"></i> Backup JSON
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Content (Full Width Desktop) -->
+    <!-- Main Content -->
     <main class="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- VIEW 1: DASHBOARD MONITORING -->
+        <!-- VIEW 1: DASHBOARD MONITORING BERJALAN -->
         <div id="view-dashboard" class="space-y-6">
+            <!-- KPI Metric Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
                     <div>
@@ -100,7 +104,7 @@
                 </div>
                 <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
                     <div>
-                        <p class="text-xs text-slate-400 font-medium">Member Tidak Aktif / Habis</p>
+                        <p class="text-xs text-slate-400 font-medium">Member Sesi Habis (0)</p>
                         <p id="dash-inactive-clients" class="text-2xl font-bold text-rose-400 mt-1">0</p>
                     </div>
                     <div class="p-3 bg-rose-500/10 text-rose-400 rounded-lg"><i data-lucide="user-x" class="w-6 h-6"></i></div>
@@ -117,21 +121,26 @@
                 </div>
                 <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i data-lucide="pie-chart" class="text-emerald-400 w-4 h-4"></i> Status Sesi Client
+                        <i data-lucide="pie-chart" class="text-emerald-400 w-4 h-4"></i> Status Sesi Member
                     </h3>
                     <div class="h-72 relative flex items-center justify-center"><canvas id="chart-session-status"></canvas></div>
                 </div>
             </div>
 
-            <!-- TABEL DAFTAR CLIENT HABIS & HAMPIR HABIS DI DASHBOARD -->
+            <!-- TABEL DAN EKSPOR KHUSUS DUA KATAGORI -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Tabel Client Sesi Segera Habis (Sisa 1-3) -->
                 <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-700 pb-2">
                         <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-                            <i data-lucide="alert-triangle" class="w-4 h-4"></i> Client Sesi Segera Habis (Sisa 1-3 Sesi)
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i> Sesi Segera Habis (Sisa 1-3)
                         </h3>
-                        <span id="dash-warning-count-badge" class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
+                        <div class="flex items-center gap-2">
+                            <span id="dash-warning-count-badge" class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
+                            <button onclick="exportSpecificCategory('WARNING')" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 text-[11px] font-semibold rounded flex items-center gap-1 transition">
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Excel
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto max-h-96 rounded-lg border border-slate-700">
                         <table class="w-full text-left text-xs text-slate-300">
@@ -152,9 +161,14 @@
                 <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-700 pb-2">
                         <h3 class="text-sm font-bold text-rose-400 flex items-center gap-2">
-                            <i data-lucide="user-x" class="w-4 h-4"></i> Client Sesi Sudah Habis (Sisa 0)
+                            <i data-lucide="user-x" class="w-4 h-4"></i> Sesi Sudah Habis (Sisa 0)
                         </h3>
-                        <span id="dash-inactive-count-badge" class="bg-rose-500/20 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
+                        <div class="flex items-center gap-2">
+                            <span id="dash-inactive-count-badge" class="bg-rose-500/20 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
+                            <button onclick="exportSpecificCategory('EXPIRED')" class="px-2.5 py-1 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white text-[11px] font-semibold rounded flex items-center gap-1 transition">
+                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Excel
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto max-h-96 rounded-lg border border-slate-700">
                         <table class="w-full text-left text-xs text-slate-300">
@@ -173,7 +187,66 @@
             </div>
         </div>
 
-        <!-- VIEW 2: CLIENT DATA & LOG MANAGEMENT -->
+        <!-- VIEW 2: MODUL LAPORAN EVALUASI BERJALAN -->
+        <div id="view-evaluation" class="hidden space-y-6">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-700 pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i data-lucide="line-chart" class="text-sky-400"></i> Laporan Evaluasi Berjalan & Performance Trainer
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Ringkasan analitis rasio penyelesaian sesi, utilisasi paket, dan estimasi beban re-assessment.</p>
+                    </div>
+                    <button onclick="exportEvaluationSummary()" class="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs rounded-lg flex items-center gap-2 transition">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Download Laporan Ringkasan Evaluasi
+                    </button>
+                </div>
+
+                <!-- Evaluation Stat Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-xl">
+                        <p class="text-xs text-slate-400">Total Keseluruhan Paket Sesi</p>
+                        <p id="eval-total-sessions" class="text-2xl font-bold text-sky-400 mt-1">0 Sesi</p>
+                        <p class="text-[11px] text-slate-500 mt-1">Total sesi terdaftar di sistem</p>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-xl">
+                        <p class="text-xs text-slate-400">Total Sesi Telah Terpakai</p>
+                        <p id="eval-used-sessions" class="text-2xl font-bold text-emerald-400 mt-1">0 Sesi</p>
+                        <p id="eval-utilization-rate" class="text-[11px] text-emerald-500 mt-1">Tingkat utilisasi: 0%</p>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-xl">
+                        <p class="text-xs text-slate-400">Peluang Renewal / Assessment</p>
+                        <p id="eval-renewal-target" class="text-2xl font-bold text-amber-400 mt-1">0 Member</p>
+                        <p class="text-[11px] text-slate-500 mt-1">Member dengan sisa &le; 3 sesi</p>
+                    </div>
+                </div>
+
+                <!-- Table Trainer Evaluation Breakdown -->
+                <div class="space-y-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i data-lucide="users" class="w-4 h-4 text-sky-400"></i> Evaluasi Distribusi & Beban Sesi Per Trainer
+                    </h3>
+                    <div class="overflow-x-auto rounded-lg border border-slate-700">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-700">
+                                <tr>
+                                    <th class="p-3">Nama Trainer</th>
+                                    <th class="p-3 text-center">Total Client</th>
+                                    <th class="p-3 text-center">Client Aktif (>3)</th>
+                                    <th class="p-3 text-center">Segera Habis (1-3)</th>
+                                    <th class="p-3 text-center">Habis (0)</th>
+                                    <th class="p-3 text-center">Total Sesi Diampu</th>
+                                    <th class="p-3 text-center">Tingkat Selesai (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eval-trainer-table-body" class="divide-y divide-slate-700/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: CLIENT DATA & LOG MANAGEMENT -->
         <div id="view-clients" class="hidden space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 
@@ -223,13 +296,16 @@
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                                <i data-lucide="users" class="text-sky-400"></i> Daftar Client per Trainer
+                                <i data-lucide="users" class="text-sky-400"></i> Kelola Data Client & Sesi
                             </h2>
-                            <p class="text-xs text-slate-400 mt-1">Gunakan kolom input angka di bawah untuk langsung mengubah angka sesi secara manual.</p>
+                            <p class="text-xs text-slate-400 mt-1">Ubah nilai sesi secara manual atau filter data sesuai status sesi berjalan.</p>
                         </div>
                         <div class="flex items-center gap-2">
                             <button id="btn-bulk-delete" onclick="deleteSelectedClients()" class="hidden px-3 py-1.5 bg-rose-500 hover:bg-rose-400 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Terpilih (<span id="selected-count">0</span>)
+                            </button>
+                            <button onclick="exportFilteredClients()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
+                                <i data-lucide="download" class="w-4 h-4"></i> Export Data Terfilter
                             </button>
                             <button onclick="openAddClientModal()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
                                 <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah / Import Excel
@@ -237,11 +313,17 @@
                         </div>
                     </div>
 
-                    <!-- Search & Filter -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Search & Filter Berjalan -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <input type="text" id="search-input" oninput="renderClients()" placeholder="Cari Nama Member..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
                         <select id="filter-trainer" onchange="renderClients()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
                             <option value="ALL">Semua Trainer</option>
+                        </select>
+                        <select id="filter-status" onchange="renderClients()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                            <option value="ALL">Semua Status Sesi</option>
+                            <option value="ACTIVE">Aktif (&gt; 3 Sesi)</option>
+                            <option value="WARNING">Segera Habis (1 - 3 Sesi)</option>
+                            <option value="EXPIRED">Sudah Habis (0 Sesi)</option>
                         </select>
                     </div>
 
@@ -419,7 +501,6 @@
         let chartTrainerDistInstance = null;
         let chartSessionStatusInstance = null;
 
-        // FUNGSI PENCocokan NAMA TRAINER OTOMATIS (SMART MATCHING)
         function matchTrainerName(rawName) {
             if (!rawName) return "Lainnya / Belum Ditentukan";
             const clean = String(rawName).trim().toLowerCase();
@@ -431,10 +512,9 @@
                     return t;
                 }
             }
-            return String(rawName).trim(); // Kembalikan nama aslinya jika tidak pas
+            return String(rawName).trim();
         }
 
-        // FUNGSI JAM REALTIME
         function updateRealtimeClock() {
             const now = new Date();
             const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -458,21 +538,32 @@
 
         function switchView(viewName) {
             const dashView = document.getElementById('view-dashboard');
+            const evalView = document.getElementById('view-evaluation');
             const clientView = document.getElementById('view-clients');
+            
             const navDash = document.getElementById('nav-dashboard');
+            const navEval = document.getElementById('nav-evaluation');
             const navClients = document.getElementById('nav-clients');
+
+            dashView.classList.add('hidden');
+            evalView.classList.add('hidden');
+            clientView.classList.add('hidden');
+
+            navDash.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2";
+            navEval.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2";
+            navClients.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2";
 
             if (viewName === 'dashboard') {
                 dashView.classList.remove('hidden');
-                clientView.classList.add('hidden');
                 navDash.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2";
-                navClients.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2";
                 renderDashboard();
+            } else if (viewName === 'evaluation') {
+                evalView.classList.remove('hidden');
+                navEval.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2";
+                renderEvaluationReport();
             } else {
-                dashView.classList.add('hidden');
                 clientView.classList.remove('hidden');
                 navClients.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2";
-                navDash.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2";
                 renderClients();
             }
         }
@@ -512,6 +603,209 @@
             if (!pkgStr) return 12;
             const matches = String(pkgStr).match(/\d+/);
             return matches ? parseInt(matches[0]) : 12;
+        }
+
+        // EKSPOR LAPORAN SPESIFIK (SESI HABIS ATAU HAMPIR HABIS)
+        function exportSpecificCategory(categoryType) {
+            let targetClients = [];
+            let fileName = "";
+
+            if (categoryType === 'EXPIRED') {
+                targetClients = clients.filter(c => ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) <= 0);
+                fileName = "FTL_Member_Sesi_Habis_0.xlsx";
+            } else if (categoryType === 'WARNING') {
+                targetClients = clients.filter(c => {
+                    const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
+                    return rem <= 3 && rem > 0;
+                });
+                fileName = "FTL_Member_Sesi_Segera_Habis_1-3.xlsx";
+            }
+
+            if (targetClients.length === 0) {
+                return alert('Tidak ada data member untuk diekspor pada kategori ini!');
+            }
+
+            const exportDataArray = targetClients.map((c, idx) => {
+                const total = c.total || parsePackageToNumber(c.package);
+                const used = c.used || 0;
+                const rem = total - used;
+                return {
+                    "No": idx + 1,
+                    "Nama Member": c.name,
+                    "Jenis Paket": c.package || 'PT Smart',
+                    "Trainer Diampu": c.trainer,
+                    "Total Sesi": total,
+                    "Sesi Terpakai": used,
+                    "Sisa Sesi": rem,
+                    "Status Sesi": rem <= 0 ? "Habis (0)" : "Segera Habis (1-3)"
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(exportDataArray);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Daftar_Member");
+            XLSX.writeFile(wb, fileName);
+        }
+
+        // EKSPOR LAPORAN KESELURUHAN TERFILTER
+        function exportFilteredClients() {
+            const searchVal = document.getElementById('search-input').value.toLowerCase();
+            const trainerFilter = document.getElementById('filter-trainer').value;
+            const statusFilter = document.getElementById('filter-status').value;
+
+            const filteredClients = clients.filter(c => {
+                const matchName = String(c.name || '').toLowerCase().includes(searchVal);
+                let matchTrainer = true;
+                if (trainerFilter === 'OTHER') {
+                    matchTrainer = !TRAINERS.includes(c.trainer);
+                } else if (trainerFilter !== 'ALL') {
+                    matchTrainer = c.trainer === trainerFilter;
+                }
+
+                const total = c.total || parsePackageToNumber(c.package);
+                const rem = total - (c.used || 0);
+                let matchStatus = true;
+                if (statusFilter === 'ACTIVE') matchStatus = rem > 3;
+                else if (statusFilter === 'WARNING') matchStatus = rem <= 3 && rem > 0;
+                else if (statusFilter === 'EXPIRED') matchStatus = rem <= 0;
+
+                return matchName && matchTrainer && matchStatus;
+            });
+
+            if (filteredClients.length === 0) {
+                return alert('Tidak ada data terfilter untuk diekspor!');
+            }
+
+            const exportDataArray = filteredClients.map((c, idx) => {
+                const total = c.total || parsePackageToNumber(c.package);
+                const used = c.used || 0;
+                const rem = total - used;
+                let statusText = "Aktif";
+                if (rem <= 0) statusText = "Habis (0)";
+                else if (rem <= 3) statusText = "Hampir Habis (1-3)";
+
+                return {
+                    "No": idx + 1,
+                    "Nama Member": c.name,
+                    "Jenis Paket": c.package || 'PT Smart',
+                    "Trainer": c.trainer,
+                    "Total Sesi": total,
+                    "Sesi Terpakai": used,
+                    "Sisa Sesi": rem,
+                    "Status": statusText
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(exportDataArray);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Data_Terfilter");
+            XLSX.writeFile(wb, `FTL_Client_Filtered_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        // RENDERING MODUL LAPORAN EVALUASI BERJALAN
+        function renderEvaluationReport() {
+            let grandTotalSessions = 0;
+            let grandUsedSessions = 0;
+            let totalRenewalClients = 0;
+
+            const trainerEvalData = TRAINERS.map(t => {
+                const trainerClients = clients.filter(c => c.trainer === t);
+                let tActive = 0, tWarning = 0, tExpired = 0;
+                let tTotalSessions = 0, tUsedSessions = 0;
+
+                trainerClients.forEach(c => {
+                    const total = c.total || parsePackageToNumber(c.package);
+                    const used = c.used || 0;
+                    const rem = total - used;
+
+                    tTotalSessions += total;
+                    tUsedSessions += used;
+
+                    if (rem > 3) tActive++;
+                    else if (rem > 0) tWarning++;
+                    else tExpired++;
+                });
+
+                grandTotalSessions += tTotalSessions;
+                grandUsedSessions += tUsedSessions;
+                totalRenewalClients += (tWarning + tExpired);
+
+                const completionRate = tTotalSessions > 0 ? ((tUsedSessions / tTotalSessions) * 100).toFixed(1) : "0.0";
+
+                return {
+                    trainer: t,
+                    totalClients: trainerClients.length,
+                    active: tActive,
+                    warning: tWarning,
+                    expired: tExpired,
+                    totalSessions: tTotalSessions,
+                    usedSessions: tUsedSessions,
+                    completionRate: completionRate
+                };
+            });
+
+            document.getElementById('eval-total-sessions').innerText = `${grandTotalSessions.toLocaleString('id-ID')} Sesi`;
+            document.getElementById('eval-used-sessions').innerText = `${grandUsedSessions.toLocaleString('id-ID')} Sesi`;
+            
+            const grandRate = grandTotalSessions > 0 ? ((grandUsedSessions / grandTotalSessions) * 100).toFixed(1) : "0.0";
+            document.getElementById('eval-utilization-rate').innerText = `Tingkat utilisasi sesi: ${grandRate}%`;
+            document.getElementById('eval-renewal-target').innerText = `${totalRenewalClients} Member`;
+
+            const evalTableBody = document.getElementById('eval-trainer-table-body');
+            evalTableBody.innerHTML = '';
+
+            trainerEvalData.forEach(row => {
+                evalTableBody.innerHTML += `
+                    <tr class="hover:bg-slate-700/30">
+                        <td class="p-3 font-semibold text-white">${row.trainer}</td>
+                        <td class="p-3 text-center font-bold text-sky-400">${row.totalClients}</td>
+                        <td class="p-3 text-center text-emerald-400 font-semibold">${row.active}</td>
+                        <td class="p-3 text-center text-amber-400 font-semibold">${row.warning}</td>
+                        <td class="p-3 text-center text-rose-400 font-semibold">${row.expired}</td>
+                        <td class="p-3 text-center font-mono">${row.usedSessions} / ${row.totalSessions}</td>
+                        <td class="p-3 text-center font-bold ${parseFloat(row.completionRate) >= 70 ? 'text-emerald-400' : 'text-amber-400'}">${row.completionRate}%</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function exportEvaluationSummary() {
+            const trainerEvalData = TRAINERS.map(t => {
+                const trainerClients = clients.filter(c => c.trainer === t);
+                let tActive = 0, tWarning = 0, tExpired = 0;
+                let tTotalSessions = 0, tUsedSessions = 0;
+
+                trainerClients.forEach(c => {
+                    const total = c.total || parsePackageToNumber(c.package);
+                    const used = c.used || 0;
+                    const rem = total - used;
+
+                    tTotalSessions += total;
+                    tUsedSessions += used;
+
+                    if (rem > 3) tActive++;
+                    else if (rem > 0) tWarning++;
+                    else tExpired++;
+                });
+
+                const completionRate = tTotalSessions > 0 ? ((tUsedSessions / tTotalSessions) * 100).toFixed(1) + "%" : "0%";
+
+                return {
+                    "Nama Trainer": t,
+                    "Total Client": trainerClients.length,
+                    "Client Aktif (>3)": tActive,
+                    "Segera Habis (1-3)": tWarning,
+                    "Habis (0)": tExpired,
+                    "Total Sesi Paket": tTotalSessions,
+                    "Sesi Terpakai": tUsedSessions,
+                    "Tingkat Selesai Sesi": completionRate
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(trainerEvalData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Evaluasi_Trainer");
+            XLSX.writeFile(wb, `FTL_Laporan_Evaluasi_Trainer_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
         async function sendWATrainerNotice(clientName, packageName, trainerName, remaining, type) {
@@ -752,6 +1046,7 @@
             const selectClient = document.getElementById('select-client');
             const searchVal = document.getElementById('search-input').value.toLowerCase();
             const trainerFilter = document.getElementById('filter-trainer').value;
+            const statusFilter = document.getElementById('filter-status').value;
 
             tableBody.innerHTML = '';
             selectClient.innerHTML = '<option value="">-- Pilih Member --</option>';
@@ -764,7 +1059,15 @@
                 } else if (trainerFilter !== 'ALL') {
                     matchTrainer = c.trainer === trainerFilter;
                 }
-                return matchName && matchTrainer;
+
+                const total = c.total || parsePackageToNumber(c.package);
+                const rem = total - (c.used || 0);
+                let matchStatus = true;
+                if (statusFilter === 'ACTIVE') matchStatus = rem > 3;
+                else if (statusFilter === 'WARNING') matchStatus = rem <= 3 && rem > 0;
+                else if (statusFilter === 'EXPIRED') matchStatus = rem <= 0;
+
+                return matchName && matchTrainer && matchStatus;
             });
 
             const totalRecords = filteredClients.length;
@@ -896,6 +1199,7 @@
         function toggleSelectAll(masterCheckbox) {
             const searchVal = document.getElementById('search-input').value.toLowerCase();
             const trainerFilter = document.getElementById('filter-trainer').value;
+            const statusFilter = document.getElementById('filter-status').value;
 
             const filteredClients = clients.filter(c => {
                 const matchName = String(c.name || '').toLowerCase().includes(searchVal);
@@ -905,7 +1209,15 @@
                 } else if (trainerFilter !== 'ALL') {
                     matchTrainer = c.trainer === trainerFilter;
                 }
-                return matchName && matchTrainer;
+
+                const total = c.total || parsePackageToNumber(c.package);
+                const rem = total - (c.used || 0);
+                let matchStatus = true;
+                if (statusFilter === 'ACTIVE') matchStatus = rem > 3;
+                else if (statusFilter === 'WARNING') matchStatus = rem <= 3 && rem > 0;
+                else if (statusFilter === 'EXPIRED') matchStatus = rem <= 0;
+
+                return matchName && matchTrainer && matchStatus;
             });
 
             const startIndex = (currentPage - 1) * pageSize;
@@ -1078,7 +1390,7 @@
                                 id: Date.now() + idx,
                                 name: String(nameVal).toUpperCase().trim(),
                                 package: pkgStr,
-                                trainer: matchTrainerName(trainerVal), // Memakai Smart Matching
+                                trainer: matchTrainerName(trainerVal),
                                 total: total,
                                 used: used
                             });
@@ -1107,7 +1419,7 @@
         async function deleteClient(id) {
             const client = clients.find(c => c.id === id);
             if (client && confirm(`Hapus member ${client.name}?`)) {
-                clients = clients.filter(c => !selectedClientIds.has(c.id) && c.id !== id);
+                clients = clients.filter(c => c.id !== id);
                 selectedClientIds.delete(id);
                 
                 if (db && window.FirebaseSDK) {
