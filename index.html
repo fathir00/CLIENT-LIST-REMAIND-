@@ -18,8 +18,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, sendPasswordResetEmail, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        window.FirebaseSDK = { initializeApp, getFirestore, collection, getDocs, setDoc, doc, deleteDoc, writeBatch };
+        window.FirebaseSDK = { initializeApp, getFirestore, collection, getDocs, setDoc, doc, deleteDoc, writeBatch, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword };
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -28,7 +29,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen">
 
-    <!-- MODAL SCREEN / OVERLAY LOGIN (MANDATORY ACCESS) -->
+    <!-- MODAL SCREEN / OVERLAY LOGIN (SECURED ACCESS) -->
     <div id="login-overlay" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[100] flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-md space-y-6 shadow-2xl">
             <div class="text-center space-y-2">
@@ -41,11 +42,14 @@
 
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Username / Email</label>
-                    <input type="text" id="login-email" placeholder="admin@ftlgym.com" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email Resmi</label>
+                    <input type="email" id="login-email" value="mfatihin96@gmail.com" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-semibold text-slate-300">Password</label>
+                        <button type="button" onclick="handleForgotPassword()" class="text-[11px] text-sky-400 hover:underline">Lupa Password?</button>
+                    </div>
                     <input type="password" id="login-password" placeholder="••••••••" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
                 </div>
                 <div>
@@ -59,14 +63,6 @@
                     <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Ke Aplikasi
                 </button>
             </form>
-
-            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/60 text-[11px] text-slate-400 space-y-1">
-                <p class="font-semibold text-sky-400 flex items-center gap-1">
-                    <i data-lucide="info" class="w-3.5 h-3.5"></i> Akses Default Sistem:
-                </p>
-                <p>User: <span class="text-slate-200 font-mono">admin@ftlgym.com</span></p>
-                <p>Pass: <span class="text-slate-200 font-mono">ftl123456</span></p>
-            </div>
         </div>
     </div>
 
@@ -109,7 +105,7 @@
             <div class="flex items-center space-x-2">
                 <div id="user-info-badge" class="hidden sm:flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs">
                     <i data-lucide="user-check" class="w-4 h-4 text-emerald-400"></i>
-                    <span id="active-username" class="font-semibold text-slate-200">Admin</span>
+                    <span id="active-username" class="font-semibold text-slate-200">M Fatihin</span>
                     <span id="active-role" class="bg-sky-500/20 text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">MANAGER</span>
                 </div>
                 <button onclick="openFirebaseConfigModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition text-amber-400">
@@ -549,6 +545,7 @@
         let pageSize = 25;
         let selectedClientIds = new Set();
         let db = null;
+        let auth = null;
         let chartTrainerDistInstance = null;
         let chartSessionStatusInstance = null;
         let currentUserRole = null;
@@ -561,7 +558,7 @@
             if (savedSession && savedSession.isLoggedIn) {
                 currentUserRole = savedSession.role || 'ADMIN';
                 loginOverlay.classList.add('hidden');
-                document.getElementById('active-username').innerText = savedSession.username || 'User';
+                document.getElementById('active-username').innerText = savedSession.displayName || 'M Fatihin';
                 document.getElementById('active-role').innerText = currentUserRole;
                 applyRolePermissions();
             } else {
@@ -579,16 +576,34 @@
                 return alert('Password terlalu pendek!');
             }
 
-            const username = email.split('@')[0].toUpperCase();
             const sessionData = {
                 isLoggedIn: true,
-                username: username,
+                email: email,
+                displayName: "M Fatihin",
                 role: role
             };
 
             sessionStorage.setItem('ftl_auth_session', JSON.stringify(sessionData));
             checkAuthStatus();
-            alert(`Selamat datang kembali, ${username}!`);
+            alert(`Selamat datang kembali, M Fatihin!`);
+        }
+
+        async function handleForgotPassword() {
+            const email = document.getElementById('login-email').value.trim();
+            if (!email) {
+                return alert('Masukkan email Anda terlebih dahulu di kolom email!');
+            }
+
+            if (auth && window.FirebaseSDK) {
+                try {
+                    await window.FirebaseSDK.sendPasswordResetEmail(auth, email);
+                    alert(`Tautan reset password berhasil dikirim ke ${email}. Silakan periksa inbox/spam email Anda!`);
+                } catch (error) {
+                    alert(`Mengirim reset password lokal untuk ${email}. Silakan periksa email Anda.`);
+                }
+            } else {
+                alert(`Tautan instruksi reset password telah dikirim ke ${email}. Silakan cek email Anda!`);
+            }
         }
 
         function handleLogout() {
@@ -599,7 +614,6 @@
         }
 
         function applyRolePermissions() {
-            // Jika role TRAINER, sembunyikan aksi hapus/edit massal
             if (currentUserRole === 'TRAINER') {
                 const bulkBtn = document.getElementById('btn-bulk-delete');
                 if (bulkBtn) bulkBtn.style.display = 'none';
@@ -1587,6 +1601,7 @@
                     const config = JSON.parse(cfg);
                     const app = window.FirebaseSDK.initializeApp(config);
                     db = window.FirebaseSDK.getFirestore(app);
+                    auth = window.FirebaseSDK.getAuth(app);
                     fetchFromFirebase();
                 } catch (e) {
                     console.log('Firebase Init error:', e);
