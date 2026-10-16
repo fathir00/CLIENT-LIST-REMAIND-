@@ -28,6 +28,48 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen">
 
+    <!-- MODAL SCREEN / OVERLAY LOGIN (MANDATORY ACCESS) -->
+    <div id="login-overlay" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-md space-y-6 shadow-2xl">
+            <div class="text-center space-y-2">
+                <div class="inline-flex bg-sky-500 p-3 rounded-xl text-slate-950 mb-1">
+                    <i data-lucide="dumbbell" class="w-8 h-8"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white tracking-wide">FTL GYM TRACKER</h2>
+                <p class="text-xs text-sky-400 font-medium">Session & Performance System - Depok Lama</p>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Username / Email</label>
+                    <input type="text" id="login-email" placeholder="admin@ftlgym.com" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Role Akses</label>
+                    <select id="login-role" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                        <option value="ADMIN">Manager / Fitness Manager (Full Akses)</option>
+                        <option value="TRAINER">Trainer / Staff (Terbatas)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
+                    <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Ke Aplikasi
+                </button>
+            </form>
+
+            <div class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/60 text-[11px] text-slate-400 space-y-1">
+                <p class="font-semibold text-sky-400 flex items-center gap-1">
+                    <i data-lucide="info" class="w-3.5 h-3.5"></i> Akses Default Sistem:
+                </p>
+                <p>User: <span class="text-slate-200 font-mono">admin@ftlgym.com</span></p>
+                <p>Pass: <span class="text-slate-200 font-mono">ftl123456</span></p>
+            </div>
+        </div>
+    </div>
+
     <!-- Header Navigation (Full Width) -->
     <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
         <div class="w-full px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
@@ -63,12 +105,21 @@
                 </button>
             </div>
 
+            <!-- User Auth Bar & Actions -->
             <div class="flex items-center space-x-2">
+                <div id="user-info-badge" class="hidden sm:flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs">
+                    <i data-lucide="user-check" class="w-4 h-4 text-emerald-400"></i>
+                    <span id="active-username" class="font-semibold text-slate-200">Admin</span>
+                    <span id="active-role" class="bg-sky-500/20 text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">MANAGER</span>
+                </div>
                 <button onclick="openFirebaseConfigModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition text-amber-400">
                     <i data-lucide="database" class="w-4 h-4"></i> Firebase Cloud
                 </button>
                 <button onclick="exportData()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
                     <i data-lucide="download" class="w-4 h-4 text-sky-400"></i> Backup JSON
+                </button>
+                <button onclick="handleLogout()" class="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Logout
                 </button>
             </div>
         </div>
@@ -500,18 +551,69 @@
         let db = null;
         let chartTrainerDistInstance = null;
         let chartSessionStatusInstance = null;
+        let currentUserRole = null;
 
-        // FUNGSI PENCOCOKAN NAMA TRAINER PRESISI (EXACT & UNIQUE KEYWORD MATCHING)
+        // AUTH & LOGIN CONTROL
+        function checkAuthStatus() {
+            const savedSession = JSON.parse(sessionStorage.getItem('ftl_auth_session'));
+            const loginOverlay = document.getElementById('login-overlay');
+
+            if (savedSession && savedSession.isLoggedIn) {
+                currentUserRole = savedSession.role || 'ADMIN';
+                loginOverlay.classList.add('hidden');
+                document.getElementById('active-username').innerText = savedSession.username || 'User';
+                document.getElementById('active-role').innerText = currentUserRole;
+                applyRolePermissions();
+            } else {
+                loginOverlay.classList.remove('hidden');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-password').value.trim();
+            const role = document.getElementById('login-role').value;
+
+            if (pass.length < 4) {
+                return alert('Password terlalu pendek!');
+            }
+
+            const username = email.split('@')[0].toUpperCase();
+            const sessionData = {
+                isLoggedIn: true,
+                username: username,
+                role: role
+            };
+
+            sessionStorage.setItem('ftl_auth_session', JSON.stringify(sessionData));
+            checkAuthStatus();
+            alert(`Selamat datang kembali, ${username}!`);
+        }
+
+        function handleLogout() {
+            if (confirm('Apakah Anda yakin ingin keluar/logout?')) {
+                sessionStorage.removeItem('ftl_auth_session');
+                location.reload();
+            }
+        }
+
+        function applyRolePermissions() {
+            // Jika role TRAINER, sembunyikan aksi hapus/edit massal
+            if (currentUserRole === 'TRAINER') {
+                const bulkBtn = document.getElementById('btn-bulk-delete');
+                if (bulkBtn) bulkBtn.style.display = 'none';
+            }
+        }
+
         function matchTrainerName(rawName) {
             if (!rawName) return "Lainnya / Belum Ditentukan";
             const clean = String(rawName).trim().toLowerCase();
             
-            // 1. Cek Exact Full Match
             for (let t of TRAINERS) {
                 if (clean === t.toLowerCase()) return t;
             }
 
-            // 2. Cek Kata Kunci Unik Khusus per Trainer
             if (clean.includes("alwansyah") || clean.includes("arsathama")) return "Muhammad Alwansyah Arsathama";
             if (clean.includes("fatihin")) return "M Fatihin";
             if (clean.includes("arini") || clean.includes("pahwandi")) return "Arini Permata Pahwandi";
@@ -583,6 +685,7 @@
 
         function initApp() {
             lucide.createIcons();
+            checkAuthStatus();
             populateTrainerDropdowns();
             renderClients();
             renderDashboard();
@@ -1245,7 +1348,7 @@
         function updateBulkDeleteButton() {
             const btn = document.getElementById('btn-bulk-delete');
             const countLabel = document.getElementById('selected-count');
-            if (selectedClientIds.size > 0) {
+            if (selectedClientIds.size > 0 && currentUserRole !== 'TRAINER') {
                 btn.classList.remove('hidden');
                 countLabel.innerText = selectedClientIds.size;
             } else {
