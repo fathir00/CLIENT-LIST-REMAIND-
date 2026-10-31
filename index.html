@@ -174,13 +174,111 @@
                 </div>
             </div>
 
+            <!-- KELOMPOK PENGAWASAN SISA SESI MEMBER (<10, 5, 3 SESI) -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-5 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="layers" class="w-5 h-5 text-sky-400"></i> Pengelompokan Monitoring Sisa Sesi Member
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Pemantauan bertingkat member berdasarkan sisa paket sesi (6-10 Sesi, 4-5 Sesi, & 1-3 Sesi).</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Kelompok 1: Sisa 6 - 10 Sesi -->
+                    <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 space-y-3 flex flex-col justify-between">
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                <h4 class="text-xs font-bold text-sky-400 flex items-center gap-1.5">
+                                    <i data-lucide="clock" class="w-4 h-4"></i> Sisa 6 – 10 Sesi
+                                </h4>
+                                <span id="badge-count-10" class="bg-sky-500/20 text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
+                            </div>
+                            <div class="overflow-y-auto max-h-72 rounded-lg border border-slate-800">
+                                <table class="w-full text-left text-xs text-slate-300">
+                                    <thead class="bg-slate-800 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 z-10">
+                                        <tr>
+                                            <th class="p-2">Member</th>
+                                            <th class="p-2">Trainer</th>
+                                            <th class="p-2 text-center">Sisa</th>
+                                            <th class="p-2 text-center">WA</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-sess-10" class="divide-y divide-slate-800/80"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <button onclick="exportCustomSessionGroup(6, 10)" class="w-full py-1.5 bg-sky-500/20 hover:bg-sky-500 text-sky-300 hover:text-slate-950 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Excel (Sisa 6-10)
+                        </button>
+                    </div>
+
+                    <!-- Kelompok 2: Sisa 4 - 5 Sesi -->
+                    <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 space-y-3 flex flex-col justify-between">
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                <h4 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                                    <i data-lucide="alert-circle" class="w-4 h-4"></i> Sisa 4 – 5 Sesi
+                                </h4>
+                                <span id="badge-count-5" class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
+                            </div>
+                            <div class="overflow-y-auto max-h-72 rounded-lg border border-slate-800">
+                                <table class="w-full text-left text-xs text-slate-300">
+                                    <thead class="bg-slate-800 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 z-10">
+                                        <tr>
+                                            <th class="p-2">Member</th>
+                                            <th class="p-2">Trainer</th>
+                                            <th class="p-2 text-center">Sisa</th>
+                                            <th class="p-2 text-center">WA</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-sess-5" class="divide-y divide-slate-800/80"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <button onclick="exportCustomSessionGroup(4, 5)" class="w-full py-1.5 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Excel (Sisa 4-5)
+                        </button>
+                    </div>
+
+                    <!-- Kelompok 3: Sisa 1 - 3 Sesi -->
+                    <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 space-y-3 flex flex-col justify-between">
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                <h4 class="text-xs font-bold text-rose-400 flex items-center gap-1.5">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i> Sisa 1 – 3 Sesi
+                                </h4>
+                                <span id="badge-count-3" class="bg-rose-500/20 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
+                            </div>
+                            <div class="overflow-y-auto max-h-72 rounded-lg border border-slate-800">
+                                <table class="w-full text-left text-xs text-slate-300">
+                                    <thead class="bg-slate-800 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 z-10">
+                                        <tr>
+                                            <th class="p-2">Member</th>
+                                            <th class="p-2">Trainer</th>
+                                            <th class="p-2 text-center">Sisa</th>
+                                            <th class="p-2 text-center">WA</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-sess-3" class="divide-y divide-slate-800/80"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <button onclick="exportCustomSessionGroup(1, 3)" class="w-full py-1.5 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Excel (Sisa 1-3)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- TABEL DAN EKSPOR KHUSUS DUA KATAGORI -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Tabel Client Sesi Segera Habis (Sisa 1-3) -->
                 <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
                     <div class="flex justify-between items-center border-b border-slate-700 pb-2">
                         <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-                            <i data-lucide="alert-triangle" class="w-4 h-4"></i> Sesi Segera Habis (Sisa 1-3)
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i> Ringkasan Sesi Segera Habis (Sisa 1-3)
                         </h3>
                         <div class="flex items-center gap-2">
                             <span id="dash-warning-count-badge" class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
@@ -735,6 +833,37 @@
             return matches ? parseInt(matches[0]) : 12;
         }
 
+        function exportCustomSessionGroup(minSess, maxSess) {
+            const targetClients = clients.filter(c => {
+                const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
+                return rem >= minSess && rem <= maxSess;
+            });
+
+            if (targetClients.length === 0) {
+                return alert(`Tidak ada data member untuk rentang sisa ${minSess}-${maxSess} sesi!`);
+            }
+
+            const exportDataArray = targetClients.map((c, idx) => {
+                const total = c.total || parsePackageToNumber(c.package);
+                const used = c.used || 0;
+                const rem = total - used;
+                return {
+                    "No": idx + 1,
+                    "Nama Member": c.name,
+                    "Jenis Paket": c.package || 'PT Smart',
+                    "Trainer Diampu": c.trainer,
+                    "Total Sesi": total,
+                    "Sesi Terpakai": used,
+                    "Sisa Sesi": rem
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(exportDataArray);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, `Sisa_${minSess}-${maxSess}_Sesi`);
+            XLSX.writeFile(wb, `FTL_Member_Sisa_${minSess}-${maxSess}_Sesi.xlsx`);
+        }
+
         function exportSpecificCategory(categoryType) {
             let targetClients = [];
             let fileName = "";
@@ -938,7 +1067,9 @@
         async function sendWATrainerNotice(clientName, packageName, trainerName, remaining, type) {
             let text = "";
 
-            if (type === 'WARNING') {
+            if (type === 'NOTICE_10') {
+                text = `Halo Coach *${trainerName}*,\n\nInfo dari FTL Gym Depok Lama:\nSesi latihan client Anda *${clientName}* (Paket: ${packageName}) tersisa *${remaining} Sesi* lagi.\n\nMohon disiapkan program lanjutan dan jadwal re-assessment client. Terima kasih!`;
+            } else if (type === 'NOTICE_5' || type === 'WARNING') {
                 text = `Halo Coach *${trainerName}*,\n\nInfo dari FTL Gym Depok Lama:\nSesi latihan client Anda *${clientName}* (Paket: ${packageName}) tersisa *${remaining} Sesi* lagi.\n\nMohon diinfokan kepada client untuk persiapan renewal/re-assessment. Terima kasih!`;
             } else if (type === 'EXPIRED') {
                 text = `Halo Coach *${trainerName}*,\n\nInfo dari FTL Gym Depok Lama:\nSesi latihan client Anda *${clientName}* (Paket: ${packageName}) *SUDAH HABIS (0 Sesi)*.\n\nMohon segera dihubungi kembali client tersebut untuk dilakukan *Assessment / Re-assessment* dan proses renewal paket. Terima kasih!`;
@@ -1105,7 +1236,60 @@
             document.getElementById('dash-warning-count-badge').innerText = `${warningClients.length} Member`;
             document.getElementById('dash-inactive-count-badge').innerText = `${inactiveClients.length} Member`;
 
-            // Tabel Client Sesi Hampir Habis (Sisa 1-3 Sesi)
+            // RENDER KELOMPOK PENGAWASAN SISA SESI (<10, 5, 3 SESI)
+            const listSess10 = clients.filter(c => {
+                const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
+                return rem >= 6 && rem <= 10;
+            });
+            const listSess5 = clients.filter(c => {
+                const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
+                return rem >= 4 && rem <= 5;
+            });
+            const listSess3 = clients.filter(c => {
+                const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
+                return rem >= 1 && rem <= 3;
+            });
+
+            document.getElementById('badge-count-10').innerText = `${listSess10.length} Member`;
+            document.getElementById('badge-count-5').innerText = `${listSess5.length} Member`;
+            document.getElementById('badge-count-3').innerText = `${listSess3.length} Member`;
+
+            const populateSubTable = (targetElementId, dataList, noticeType, highlightColorClass) => {
+                const tbody = document.getElementById(targetElementId);
+                tbody.innerHTML = '';
+                if (dataList.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-2.5 text-center text-slate-500 italic text-[11px]">Tidak ada member</td></tr>';
+                } else {
+                    dataList.forEach(c => {
+                        const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
+                        const safeName = c.name.replace(/'/g, "\\'");
+                        const safeTrainer = (c.trainer || 'Trainer').replace(/'/g, "\\'");
+                        const safePkg = (c.package || 'PT Smart').replace(/'/g, "\\'");
+
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-slate-800/60">
+                                <td class="p-2">
+                                    <div class="font-semibold text-white text-[11px] truncate max-w-[110px]" title="${c.name}">${c.name}</div>
+                                    <div class="text-[9px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
+                                </td>
+                                <td class="p-2 text-slate-300 text-[10px] truncate max-w-[90px]" title="${c.trainer || 'Lainnya'}">${c.trainer || 'Lainnya'}</td>
+                                <td class="p-2 text-center font-bold text-[11px] ${highlightColorClass}">${rem}</td>
+                                <td class="p-2 text-center">
+                                    <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, '${noticeType}')" class="p-1 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-semibold text-[10px] rounded flex items-center justify-center mx-auto transition" title="Chat WA Trainer">
+                                        <i data-lucide="message-square" class="w-3 h-3"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            };
+
+            populateSubTable('table-sess-10', listSess10, 'NOTICE_10', 'text-sky-400');
+            populateSubTable('table-sess-5', listSess5, 'NOTICE_5', 'text-amber-400');
+            populateSubTable('table-sess-3', listSess3, 'WARNING', 'text-rose-400');
+
+            // Tabel Client Sesi Hampir Habis (Sisa 1-3 Sesi Ringkasan)
             const tableWarningBody = document.getElementById('dash-table-warning');
             tableWarningBody.innerHTML = '';
             if (warningClients.length === 0) {
