@@ -23,645 +23,687 @@
         window.FirebaseSDK = { initializeApp, getFirestore, collection, getDocs, setDoc, doc, deleteDoc, writeBatch, getAuth, sendPasswordResetEmail, signInWithEmailAndPassword };
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Custom Scrollbar for Light Theme */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .sidebar-active-tab {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: 700;
+            border-top-left-radius: 1rem;
+            border-bottom-left-radius: 1rem;
+            position: relative;
+        }
+        .sidebar-active-tab::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: #0284c7;
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+        }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row antialiased">
 
     <!-- MODAL SCREEN / OVERLAY LOGIN (SECURED ACCESS) -->
-    <div id="login-overlay" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-md space-y-6 shadow-2xl">
+    <div id="login-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 rounded-3xl p-8 w-full max-w-md space-y-6 shadow-2xl">
             <div class="text-center space-y-2">
-                <div class="inline-flex bg-sky-500 p-3 rounded-xl text-slate-950 mb-1">
+                <div class="inline-flex bg-teal-600 p-3.5 rounded-2xl text-white mb-1 shadow-lg shadow-teal-600/30">
                     <i data-lucide="dumbbell" class="w-8 h-8"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-white tracking-wide">FTL GYM TRACKER</h2>
-                <p class="text-xs text-sky-400 font-medium">Session & Performance System - Depok Lama</p>
+                <h2 class="text-2xl font-bold text-slate-900 tracking-tight">FTL GYM TRACKER</h2>
+                <p class="text-xs text-teal-700 font-semibold">Session & Performance System - Depok Lama</p>
             </div>
 
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email Resmi</label>
-                    <input type="email" id="login-email" value="mfatihin96@gmail.com" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Email Resmi</label>
+                    <input type="email" id="login-email" value="mfatihin96@gmail.com" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
                 </div>
                 <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs font-semibold text-slate-300">Password</label>
-                        <button type="button" onclick="handleForgotPassword()" class="text-[11px] text-sky-400 hover:underline">Lupa Password?</button>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-700">Password</label>
+                        <button type="button" onclick="handleForgotPassword()" class="text-[11px] text-teal-700 hover:underline font-medium">Lupa Password?</button>
                     </div>
-                    <input type="password" id="login-password" placeholder="••••••••" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <input type="password" id="login-password" placeholder="••••••••" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Role Akses</label>
-                    <select id="login-role" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Role Akses</label>
+                    <select id="login-role" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
                         <option value="ADMIN">Manager / Fitness Manager (Full Akses)</option>
                         <option value="TRAINER">Trainer / Staff (Terbatas)</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-sky-500/20">
+                <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-teal-700/20">
                     <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Ke Aplikasi
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- Header Navigation (Full Width) -->
-    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
-        <div class="w-full px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="bg-sky-500 p-2 rounded-lg text-slate-900">
-                    <i data-lucide="dumbbell" class="w-6 h-6"></i>
+    <!-- SIDEBAR NAVIGASI KIRI (GAYA UI REFERENSI) -->
+    <aside class="w-full md:w-64 bg-slate-800 text-slate-300 flex-shrink-0 flex flex-col justify-between py-6 pl-4 pr-0 min-h-screen">
+        <div class="space-y-8">
+            <!-- User Profile Block -->
+            <div class="flex items-center gap-3 px-3 pr-4">
+                <div class="w-12 h-12 rounded-full bg-teal-500/20 border-2 border-teal-400/40 p-0.5 overflow-hidden flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Avatar" class="w-full h-full object-cover rounded-full">
                 </div>
-                <div>
-                    <h1 class="font-bold text-xl text-white tracking-wide">FTL GYM TRACKER PRO</h1>
-                    <p class="text-xs text-sky-400 font-medium">Session & Performance Evaluation System - Depok Lama</p>
-                </div>
-            </div>
-
-            <!-- Realtime Clock Widget -->
-            <div class="hidden md:flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3.5 py-1.5 rounded-xl font-mono text-xs">
-                <i data-lucide="clock" class="w-4 h-4 text-sky-400"></i>
-                <div class="flex flex-col text-right">
-                    <span id="realtime-clock" class="font-bold text-sky-300 tracking-wider">00:00:00 WIB</span>
-                    <span id="realtime-date" class="text-[10px] text-slate-400">Loading...</span>
+                <div class="overflow-hidden">
+                    <h3 id="active-username" class="font-bold text-sm text-white truncate">M Fatihin</h3>
+                    <p id="active-role" class="text-[11px] text-teal-400 font-semibold truncate">FITNESS MANAGER</p>
+                    <p class="text-[10px] text-slate-400 truncate">mfatihin96@gmail.com</p>
                 </div>
             </div>
 
-            <!-- Navigation Tabs -->
-            <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-700">
-                <button id="nav-dashboard" onclick="switchView('dashboard')" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Monitoring
+            <!-- Navigation Links -->
+            <nav class="space-y-1.5 pr-0">
+                <button id="nav-dashboard" onclick="switchView('dashboard')" class="sidebar-active-tab w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold transition">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-teal-600"></i> Monitoring
                 </button>
-                <button id="nav-evaluation" onclick="switchView('evaluation')" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2">
+                <button id="nav-evaluation" onclick="switchView('evaluation')" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition">
                     <i data-lucide="line-chart" class="w-4 h-4"></i> Laporan Evaluasi
                 </button>
-                <button id="nav-clients" onclick="switchView('clients')" class="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2">
+                <button id="nav-clients" onclick="switchView('clients')" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition">
                     <i data-lucide="users" class="w-4 h-4"></i> Data Client & Log
                 </button>
-            </div>
-
-            <!-- User Auth Bar & Actions -->
-            <div class="flex items-center space-x-2">
-                <div id="user-info-badge" class="hidden sm:flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs">
-                    <i data-lucide="user-check" class="w-4 h-4 text-emerald-400"></i>
-                    <span id="active-username" class="font-semibold text-slate-200">M Fatihin</span>
-                    <span id="active-role" class="bg-sky-500/20 text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">MANAGER</span>
-                </div>
-                <button onclick="openFirebaseConfigModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition text-amber-400">
-                    <i data-lucide="database" class="w-4 h-4"></i> Firebase Cloud
-                </button>
-                <button onclick="exportData()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
-                    <i data-lucide="download" class="w-4 h-4 text-sky-400"></i> Backup JSON
-                </button>
-                <button onclick="handleLogout()" class="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
-                    <i data-lucide="log-out" class="w-4 h-4"></i> Logout
-                </button>
-            </div>
+            </nav>
         </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <!-- System & Backup Tools Footer -->
+        <div class="space-y-2 pr-4 pt-6 border-t border-slate-700/60">
+            <button onclick="openFirebaseConfigModal()" class="w-full px-3 py-2 bg-slate-700/60 hover:bg-slate-700 text-amber-400 text-xs font-semibold rounded-xl flex items-center gap-2 transition">
+                <i data-lucide="database" class="w-4 h-4"></i> Firebase Cloud
+            </button>
+            <button onclick="exportData()" class="w-full px-3 py-2 bg-slate-700/60 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center gap-2 transition">
+                <i data-lucide="download" class="w-4 h-4 text-teal-400"></i> Backup JSON
+            </button>
+            <button onclick="handleLogout()" class="w-full px-3 py-2 bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Logout System
+            </button>
+        </div>
+    </aside>
 
-        <!-- VIEW 1: DASHBOARD MONITORING BERJALAN -->
-        <div id="view-dashboard" class="space-y-6">
-            <!-- KPI Metric Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium">Total Member Active</p>
-                        <p id="dash-total-active" class="text-2xl font-bold text-white mt-1">0</p>
-                    </div>
-                    <div class="p-3 bg-sky-500/10 text-sky-400 rounded-lg"><i data-lucide="users" class="w-6 h-6"></i></div>
-                </div>
-                <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium">Total Trainer Active</p>
-                        <p id="dash-total-trainers" class="text-2xl font-bold text-white mt-1">0</p>
-                    </div>
-                    <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg"><i data-lucide="user-check" class="w-6 h-6"></i></div>
-                </div>
-                <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium">Sesi Segera Habis (&le; 3)</p>
-                        <p id="dash-warning-clients" class="text-2xl font-bold text-amber-400 mt-1">0</p>
-                    </div>
-                    <div class="p-3 bg-amber-500/10 text-amber-400 rounded-lg"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
-                </div>
-                <div class="bg-slate-800 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-slate-400 font-medium">Member Sesi Habis (0)</p>
-                        <p id="dash-inactive-clients" class="text-2xl font-bold text-rose-400 mt-1">0</p>
-                    </div>
-                    <div class="p-3 bg-rose-500/10 text-rose-400 rounded-lg"><i data-lucide="user-x" class="w-6 h-6"></i></div>
-                </div>
+    <!-- MAIN CANVAS CONTENT AREA -->
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-100 min-h-screen">
+
+        <!-- Top Header Bar (Welcome & Clock) -->
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-40">
+            <div>
+                <h1 class="text-xl font-bold text-slate-900 tracking-tight">Welcome M Fatihin !</h1>
+                <p class="text-xs text-slate-500">FTL Gym Depok Lama - Performance & Session Management</p>
             </div>
 
-            <!-- Charts -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 lg:col-span-2 space-y-3">
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i data-lucide="bar-chart-3" class="text-sky-400 w-4 h-4"></i> Distribusi Member per Trainer
-                    </h3>
-                    <div class="h-72 relative"><canvas id="chart-trainer-dist"></canvas></div>
+            <div class="flex items-center gap-4">
+                <!-- Search Box -->
+                <div class="relative hidden sm:block">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" placeholder="Search..." class="bg-slate-100 border border-slate-200 rounded-full pl-9 pr-4 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-teal-600 focus:bg-white w-48 transition">
                 </div>
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i data-lucide="pie-chart" class="text-emerald-400 w-4 h-4"></i> Status Sesi Member
-                    </h3>
-                    <div class="h-72 relative flex items-center justify-center"><canvas id="chart-session-status"></canvas></div>
+
+                <!-- Realtime Clock Widget -->
+                <div class="flex items-center gap-2.5 bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full font-mono text-xs">
+                    <i data-lucide="clock" class="w-4 h-4 text-teal-600"></i>
+                    <span id="realtime-clock" class="font-bold text-slate-800 tracking-wider">00:00:00 WIB</span>
+                    <span class="text-slate-300">|</span>
+                    <span id="realtime-date" class="text-[11px] text-slate-500">Loading...</span>
                 </div>
             </div>
+        </header>
 
-            <!-- KELOMPOK PENGAWASAN SISA SESI MEMBER (<10, 5, 3 SESI) -->
-            <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-5 space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-                    <div>
-                        <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <i data-lucide="layers" class="w-5 h-5 text-sky-400"></i> Pengelompokan Monitoring Sisa Sesi Member
-                        </h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Pemantauan bertingkat member berdasarkan sisa paket sesi (6-10 Sesi, 4-5 Sesi, & 1-3 Sesi).</p>
+        <!-- Main Body Workspace -->
+        <main class="p-6 space-y-6 flex-1 overflow-x-hidden">
+
+            <!-- VIEW 1: DASHBOARD MONITORING BERJALAN -->
+            <div id="view-dashboard" class="space-y-6">
+                <!-- KPI Metric Cards (Overview Grid) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500">Total Member Active</p>
+                            <p id="dash-total-active" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+                        </div>
+                        <div class="p-3.5 bg-teal-50 text-teal-600 rounded-2xl"><i data-lucide="users" class="w-6 h-6"></i></div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500">Total Trainer Active</p>
+                            <p id="dash-total-trainers" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+                        </div>
+                        <div class="p-3.5 bg-blue-50 text-blue-600 rounded-2xl"><i data-lucide="user-check" class="w-6 h-6"></i></div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500">Sesi Segera Habis (&le; 3)</p>
+                            <p id="dash-warning-clients" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+                        </div>
+                        <div class="p-3.5 bg-amber-50 text-amber-600 rounded-2xl"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+                    </div>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500">Member Sesi Habis (0)</p>
+                            <p id="dash-inactive-clients" class="text-2xl font-bold text-rose-600 mt-1">0</p>
+                        </div>
+                        <div class="p-3.5 bg-rose-50 text-rose-600 rounded-2xl"><i data-lucide="user-x" class="w-6 h-6"></i></div>
                     </div>
                 </div>
 
+                <!-- Visual Charts Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Kelompok 1: Sisa 6 - 10 Sesi -->
-                    <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 space-y-3 flex flex-col justify-between">
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                                <h4 class="text-xs font-bold text-sky-400 flex items-center gap-1.5">
-                                    <i data-lucide="clock" class="w-4 h-4"></i> Sisa 6 – 10 Sesi
-                                </h4>
-                                <span id="badge-count-10" class="bg-sky-500/20 text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
-                            </div>
-                            <div class="overflow-y-auto max-h-72 rounded-lg border border-slate-800">
-                                <table class="w-full text-left text-xs text-slate-300">
-                                    <thead class="bg-slate-800 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 z-10">
-                                        <tr>
-                                            <th class="p-2">Member</th>
-                                            <th class="p-2">Trainer</th>
-                                            <th class="p-2 text-center">Sisa</th>
-                                            <th class="p-2 text-center">WA</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="table-sess-10" class="divide-y divide-slate-800/80"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <button onclick="exportCustomSessionGroup(6, 10)" class="w-full py-1.5 bg-sky-500/20 hover:bg-sky-500 text-sky-300 hover:text-slate-950 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition">
-                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Excel (Sisa 6-10)
-                        </button>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 lg:col-span-2 space-y-3 shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="text-teal-600 w-4 h-4"></i> Distribusi Member per Trainer
+                        </h3>
+                        <div class="h-72 relative"><canvas id="chart-trainer-dist"></canvas></div>
                     </div>
-
-                    <!-- Kelompok 2: Sisa 4 - 5 Sesi -->
-                    <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 space-y-3 flex flex-col justify-between">
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                                <h4 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                                    <i data-lucide="alert-circle" class="w-4 h-4"></i> Sisa 4 – 5 Sesi
-                                </h4>
-                                <span id="badge-count-5" class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
-                            </div>
-                            <div class="overflow-y-auto max-h-72 rounded-lg border border-slate-800">
-                                <table class="w-full text-left text-xs text-slate-300">
-                                    <thead class="bg-slate-800 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 z-10">
-                                        <tr>
-                                            <th class="p-2">Member</th>
-                                            <th class="p-2">Trainer</th>
-                                            <th class="p-2 text-center">Sisa</th>
-                                            <th class="p-2 text-center">WA</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="table-sess-5" class="divide-y divide-slate-800/80"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <button onclick="exportCustomSessionGroup(4, 5)" class="w-full py-1.5 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition">
-                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Excel (Sisa 4-5)
-                        </button>
-                    </div>
-
-                    <!-- Kelompok 3: Sisa 1 - 3 Sesi -->
-                    <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 space-y-3 flex flex-col justify-between">
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                                <h4 class="text-xs font-bold text-rose-400 flex items-center gap-1.5">
-                                    <i data-lucide="alert-triangle" class="w-4 h-4"></i> Sisa 1 – 3 Sesi
-                                </h4>
-                                <span id="badge-count-3" class="bg-rose-500/20 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
-                            </div>
-                            <div class="overflow-y-auto max-h-72 rounded-lg border border-slate-800">
-                                <table class="w-full text-left text-xs text-slate-300">
-                                    <thead class="bg-slate-800 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 z-10">
-                                        <tr>
-                                            <th class="p-2">Member</th>
-                                            <th class="p-2">Trainer</th>
-                                            <th class="p-2 text-center">Sisa</th>
-                                            <th class="p-2 text-center">WA</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="table-sess-3" class="divide-y divide-slate-800/80"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <button onclick="exportCustomSessionGroup(1, 3)" class="w-full py-1.5 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition">
-                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Excel (Sisa 1-3)
-                        </button>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3 shadow-sm">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="pie-chart" class="text-teal-600 w-4 h-4"></i> Status Sesi Member
+                        </h3>
+                        <div class="h-72 relative flex items-center justify-center"><canvas id="chart-session-status"></canvas></div>
                     </div>
                 </div>
-            </div>
 
-            <!-- TABEL DAN EKSPOR KHUSUS DUA KATAGORI -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Tabel Client Sesi Segera Habis (Sisa 1-3) -->
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-2">
-                        <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
-                            <i data-lucide="alert-triangle" class="w-4 h-4"></i> Ringkasan Sesi Segera Habis (Sisa 1-3)
-                        </h3>
-                        <div class="flex items-center gap-2">
-                            <span id="dash-warning-count-badge" class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
-                            <button onclick="exportSpecificCategory('WARNING')" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 text-[11px] font-semibold rounded flex items-center gap-1 transition">
-                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Excel
+                <!-- KELOMPOK PENGAWASAN SISA SESI MEMBER (<10, 5, 3 SESI) -->
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-5 shadow-sm">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="layers" class="w-5 h-5 text-teal-600"></i> Pengelompokan Monitoring Sisa Sesi Member
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Pemantauan bertingkat member berdasarkan sisa paket sesi (6-10 Sesi, 4-5 Sesi, & 1-3 Sesi).</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Kelompok 1: Sisa 6 - 10 Sesi -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                                    <h4 class="text-xs font-bold text-teal-700 flex items-center gap-1.5">
+                                        <i data-lucide="clock" class="w-4 h-4"></i> Sisa 6 – 10 Sesi
+                                    </h4>
+                                    <span id="badge-count-10" class="bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 Member</span>
+                                </div>
+                                <div class="overflow-y-auto max-h-72 rounded-xl border border-slate-200 bg-white">
+                                    <table class="w-full text-left text-xs text-slate-700">
+                                        <thead class="bg-slate-100 text-slate-500 uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-slate-200">
+                                            <tr>
+                                                <th class="p-2.5">Member</th>
+                                                <th class="p-2.5">Trainer</th>
+                                                <th class="p-2.5 text-center">Sisa</th>
+                                                <th class="p-2.5 text-center">WA</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="table-sess-10" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <button onclick="exportCustomSessionGroup(6, 10)" class="w-full py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition border border-teal-200">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export Excel (Sisa 6-10)
+                            </button>
+                        </div>
+
+                        <!-- Kelompok 2: Sisa 4 - 5 Sesi -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                                    <h4 class="text-xs font-bold text-amber-700 flex items-center gap-1.5">
+                                        <i data-lucide="alert-circle" class="w-4 h-4"></i> Sisa 4 – 5 Sesi
+                                    </h4>
+                                    <span id="badge-count-5" class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 Member</span>
+                                </div>
+                                <div class="overflow-y-auto max-h-72 rounded-xl border border-slate-200 bg-white">
+                                    <table class="w-full text-left text-xs text-slate-700">
+                                        <thead class="bg-slate-100 text-slate-500 uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-slate-200">
+                                            <tr>
+                                                <th class="p-2.5">Member</th>
+                                                <th class="p-2.5">Trainer</th>
+                                                <th class="p-2.5 text-center">Sisa</th>
+                                                <th class="p-2.5 text-center">WA</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="table-sess-5" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <button onclick="exportCustomSessionGroup(4, 5)" class="w-full py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition border border-amber-200">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export Excel (Sisa 4-5)
+                            </button>
+                        </div>
+
+                        <!-- Kelompok 3: Sisa 1 - 3 Sesi -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                                    <h4 class="text-xs font-bold text-rose-700 flex items-center gap-1.5">
+                                        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Sisa 1 – 3 Sesi
+                                    </h4>
+                                    <span id="badge-count-3" class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 Member</span>
+                                </div>
+                                <div class="overflow-y-auto max-h-72 rounded-xl border border-slate-200 bg-white">
+                                    <table class="w-full text-left text-xs text-slate-700">
+                                        <thead class="bg-slate-100 text-slate-500 uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-slate-200">
+                                            <tr>
+                                                <th class="p-2.5">Member</th>
+                                                <th class="p-2.5">Trainer</th>
+                                                <th class="p-2.5 text-center">Sisa</th>
+                                                <th class="p-2.5 text-center">WA</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="table-sess-3" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <button onclick="exportCustomSessionGroup(1, 3)" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition border border-rose-200">
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export Excel (Sisa 1-3)
                             </button>
                         </div>
                     </div>
-                    <div class="overflow-x-auto max-h-96 rounded-lg border border-slate-700">
-                        <table class="w-full text-left text-xs text-slate-300">
-                            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-700 z-10">
-                                <tr>
-                                    <th class="p-2.5">Client & Paket</th>
-                                    <th class="p-2.5">Trainer</th>
-                                    <th class="p-2.5 text-center">Sisa</th>
-                                    <th class="p-2.5 text-center">Aksi WA</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dash-table-warning" class="divide-y divide-slate-700/60"></tbody>
-                        </table>
-                    </div>
                 </div>
 
-                <!-- Tabel Client Sesi Sudah Habis (Sisa 0) -->
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-3">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-2">
-                        <h3 class="text-sm font-bold text-rose-400 flex items-center gap-2">
-                            <i data-lucide="user-x" class="w-4 h-4"></i> Sesi Sudah Habis (Sisa 0)
-                        </h3>
-                        <div class="flex items-center gap-2">
-                            <span id="dash-inactive-count-badge" class="bg-rose-500/20 text-rose-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Member</span>
-                            <button onclick="exportSpecificCategory('EXPIRED')" class="px-2.5 py-1 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white text-[11px] font-semibold rounded flex items-center gap-1 transition">
-                                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Excel
-                            </button>
+                <!-- TABEL RINGKASAN KHUSUS DUA KATEGORI -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Tabel Client Sesi Segera Habis (Sisa 1-3) -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3 shadow-sm">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
+                                <i data-lucide="alert-triangle" class="w-4 h-4"></i> Ringkasan Sesi Segera Habis (Sisa 1-3)
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <span id="dash-warning-count-badge" class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 Member</span>
+                                <button onclick="exportSpecificCategory('WARNING')" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold rounded-lg border border-amber-200 flex items-center gap-1 transition">
+                                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="overflow-x-auto max-h-96 rounded-lg border border-slate-700">
-                        <table class="w-full text-left text-xs text-slate-300">
-                            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-700 z-10">
-                                <tr>
-                                    <th class="p-2.5">Client & Paket</th>
-                                    <th class="p-2.5">Trainer</th>
-                                    <th class="p-2.5 text-center">Sisa</th>
-                                    <th class="p-2.5 text-center">Aksi WA</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dash-table-inactive" class="divide-y divide-slate-700/60"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- VIEW 2: MODUL LAPORAN EVALUASI BERJALAN -->
-        <div id="view-evaluation" class="hidden space-y-6">
-            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 space-y-6">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-700 pb-4">
-                    <div>
-                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                            <i data-lucide="line-chart" class="text-sky-400"></i> Laporan Evaluasi Berjalan & Performance Trainer
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-1">Ringkasan analitis rasio penyelesaian sesi, utilisasi paket, dan estimasi beban re-assessment.</p>
-                    </div>
-                    <button onclick="exportEvaluationSummary()" class="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs rounded-lg flex items-center gap-2 transition">
-                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Download Laporan Ringkasan Evaluasi
-                    </button>
-                </div>
-
-                <!-- Evaluation Stat Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-xl">
-                        <p class="text-xs text-slate-400">Total Keseluruhan Paket Sesi</p>
-                        <p id="eval-total-sessions" class="text-2xl font-bold text-sky-400 mt-1">0 Sesi</p>
-                        <p class="text-[11px] text-slate-500 mt-1">Total sesi terdaftar di sistem</p>
-                    </div>
-                    <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-xl">
-                        <p class="text-xs text-slate-400">Total Sesi Telah Terpakai</p>
-                        <p id="eval-used-sessions" class="text-2xl font-bold text-emerald-400 mt-1">0 Sesi</p>
-                        <p id="eval-utilization-rate" class="text-[11px] text-emerald-500 mt-1">Tingkat utilisasi: 0%</p>
-                    </div>
-                    <div class="bg-slate-900/80 border border-slate-700/80 p-4 rounded-xl">
-                        <p class="text-xs text-slate-400">Peluang Renewal / Assessment</p>
-                        <p id="eval-renewal-target" class="text-2xl font-bold text-amber-400 mt-1">0 Member</p>
-                        <p class="text-[11px] text-slate-500 mt-1">Member dengan sisa &le; 3 sesi</p>
-                    </div>
-                </div>
-
-                <!-- Table Trainer Evaluation Breakdown -->
-                <div class="space-y-3">
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i data-lucide="users" class="w-4 h-4 text-sky-400"></i> Evaluasi Distribusi & Beban Sesi Per Trainer
-                    </h3>
-                    <div class="overflow-x-auto rounded-lg border border-slate-700">
-                        <table class="w-full text-left text-xs text-slate-300">
-                            <thead class="bg-slate-900/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-700">
-                                <tr>
-                                    <th class="p-3">Nama Trainer</th>
-                                    <th class="p-3 text-center">Total Client</th>
-                                    <th class="p-3 text-center">Client Aktif (>3)</th>
-                                    <th class="p-3 text-center">Segera Habis (1-3)</th>
-                                    <th class="p-3 text-center">Habis (0)</th>
-                                    <th class="p-3 text-center">Total Sesi Diampu</th>
-                                    <th class="p-3 text-center">Tingkat Selesai (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="eval-trainer-table-body" class="divide-y divide-slate-700/60"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- VIEW 3: CLIENT DATA & LOG MANAGEMENT -->
-        <div id="view-clients" class="hidden space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                
-                <!-- Upload / Input Schedule Section -->
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 lg:col-span-1 space-y-6">
-                    <div>
-                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                            <i data-lucide="upload-cloud" class="text-sky-400"></i> Log Sesi Harian
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-1">Upload screenshot jadwal, file Excel, atau input sesi secara langsung.</p>
-                    </div>
-
-                    <!-- OCR Foto Schedule Section -->
-                    <div class="pt-2 border-t border-slate-700/60 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <p class="text-xs font-semibold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i data-lucide="image" class="w-4 h-4"></i> Scan Foto Jadwal (OCR)
-                            </p>
-                            <span class="text-[10px] bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded font-mono">Bumi + Pintu</span>
-                        </div>
-                        <p class="text-[11px] text-slate-400">Upload screenshot daily roster. Nama member yang terdeteksi di gambar akan dipotong sesinya otomatis.</p>
-                        <input type="file" id="ocr-photo-input" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-700 file:text-sky-400 hover:file:bg-slate-600">
-                        <button id="btn-scan-ocr" onclick="processScheduleOCR()" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold py-2 rounded-lg text-xs transition flex items-center justify-center gap-2">
-                            <i data-lucide="scan" class="w-4 h-4"></i> <span id="ocr-btn-label">Scan Foto & Potong Sesi</span>
-                        </button>
-                    </div>
-
-                    <!-- Manual Single Session Record -->
-                    <form id="session-form" onsubmit="handleSingleSession(event)" class="space-y-4 pt-4 border-t border-slate-700/60">
-                        <p class="text-xs font-semibold text-sky-400 uppercase tracking-wider">Input Sesi Manual</p>
-                        <div>
-                            <label class="block text-xs text-slate-300 mb-1">Pilih Member</label>
-                            <select id="select-client" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-300 mb-1">Catatan Latihan</label>
-                            <input type="text" id="session-note" placeholder="Contoh: Leg Day / PT Smart" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-                        </div>
-                        <button type="submit" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 rounded-lg text-xs transition flex items-center justify-center gap-2">
-                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Potong 1 Sesi Otomatis
-                        </button>
-                    </form>
-
-                    <!-- DAFTAR MEMBER TERINPUT LOG SESI (DAILY, WEEKLY, MONTHLY) -->
-                    <div class="pt-4 border-t border-slate-700/60 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <p class="text-xs font-semibold text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                                <i data-lucide="history" class="w-4 h-4"></i> Histori Sesi Terinput
-                            </p>
-                            <span id="log-count-badge" class="bg-sky-500/20 text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Sesi</span>
-                        </div>
-                        
-                        <!-- Filter Tabs: Daily, Weekly, Monthly -->
-                        <div class="grid grid-cols-3 gap-1 bg-slate-900/90 p-1 rounded-lg border border-slate-700/80 text-[11px]">
-                            <button id="btn-log-daily" onclick="switchLogPeriod('daily')" class="py-1 rounded font-semibold bg-sky-500 text-slate-950 transition">Hari Ini</button>
-                            <button id="btn-log-weekly" onclick="switchLogPeriod('weekly')" class="py-1 rounded font-semibold text-slate-400 hover:text-white transition">Minggu Ini</button>
-                            <button id="btn-log-monthly" onclick="switchLogPeriod('monthly')" class="py-1 rounded font-semibold text-slate-400 hover:text-white transition">Bulan Ini</button>
-                        </div>
-
-                        <!-- Table Log Record -->
-                        <div class="overflow-y-auto max-h-60 rounded-lg border border-slate-700 bg-slate-900/60">
-                            <table class="w-full text-left text-[11px] text-slate-300">
-                                <thead class="bg-slate-900 text-slate-400 uppercase text-[9px] tracking-wider sticky top-0 z-10 border-b border-slate-700">
+                        <div class="overflow-x-auto max-h-96 rounded-xl border border-slate-200">
+                            <table class="w-full text-left text-xs text-slate-700">
+                                <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-200 z-10">
                                     <tr>
-                                        <th class="p-2">Waktu</th>
-                                        <th class="p-2">Member</th>
-                                        <th class="p-2 text-center">Metode</th>
+                                        <th class="p-3">Client & Paket</th>
+                                        <th class="p-3">Trainer</th>
+                                        <th class="p-3 text-center">Sisa</th>
+                                        <th class="p-3 text-center">Aksi WA</th>
                                     </tr>
                                 </thead>
-                                <tbody id="session-logs-tbody" class="divide-y divide-slate-800"></tbody>
+                                <tbody id="dash-table-warning" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
-                        <button onclick="clearSessionLogs()" class="w-full py-1 text-[10px] text-slate-500 hover:text-rose-400 transition text-center">Hapus Histori Log</button>
                     </div>
-                </div>
 
-                <!-- Client Table Section -->
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 lg:col-span-3 space-y-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                                <i data-lucide="users" class="text-sky-400"></i> Kelola Data Client & Sesi
-                            </h2>
-                            <p class="text-xs text-slate-400 mt-1">Ubah nilai sesi secara manual atau filter data sesuai status sesi berjalan.</p>
+                    <!-- Tabel Client Sesi Sudah Habis (Sisa 0) -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3 shadow-sm">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                            <h3 class="text-sm font-bold text-rose-700 flex items-center gap-2">
+                                <i data-lucide="user-x" class="w-4 h-4"></i> Sesi Sudah Habis (Sisa 0)
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <span id="dash-inactive-count-badge" class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 Member</span>
+                                <button onclick="exportSpecificCategory('EXPIRED')" class="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold rounded-lg border border-rose-200 flex items-center gap-1 transition">
+                                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export
+                                </button>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button id="btn-bulk-delete" onclick="deleteSelectedClients()" class="hidden px-3 py-1.5 bg-rose-500 hover:bg-rose-400 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Terpilih (<span id="selected-count">0</span>)
-                            </button>
-                            <button onclick="exportFilteredClients()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
-                                <i data-lucide="download" class="w-4 h-4"></i> Export Data Terfilter
-                            </button>
-                            <button onclick="openAddClientModal()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
-                                <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah / Import Excel
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Search & Filter Berjalan -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <input type="text" id="search-input" oninput="renderClients()" placeholder="Cari Nama Member..." class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-                        <select id="filter-trainer" onchange="renderClients()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-                            <option value="ALL">Semua Trainer</option>
-                        </select>
-                        <select id="filter-status" onchange="renderClients()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-                            <option value="ALL">Semua Status Sesi</option>
-                            <option value="ACTIVE">Aktif (&gt; 3 Sesi)</option>
-                            <option value="WARNING">Segera Habis (1 - 3 Sesi)</option>
-                            <option value="EXPIRED">Sudah Habis (0 Sesi)</option>
-                        </select>
-                    </div>
-
-                    <!-- Table -->
-                    <div class="overflow-x-auto rounded-lg border border-slate-700">
-                        <table class="w-full text-left text-xs text-slate-300">
-                            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-700">
-                                <tr>
-                                    <th class="p-3 w-8"><input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" class="rounded bg-slate-900 border-slate-700"></th>
-                                    <th class="p-3">Client & Paket</th>
-                                    <th class="p-3">Trainer</th>
-                                    <th class="p-3 text-center">Total Sesi</th>
-                                    <th class="p-3 text-center">Terpakai</th>
-                                    <th class="p-3 text-center">Sisa Sesi</th>
-                                    <th class="p-3 text-center">Status</th>
-                                    <th class="p-3 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="client-table-body" class="divide-y divide-slate-700/60"></tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination Controls -->
-                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-400 pt-2">
-                        <div class="flex items-center gap-2">
-                            <span>Tampilkan</span>
-                            <select id="page-size" onchange="changePageSize(this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none">
-                                <option value="10">10</option>
-                                <option value="25" selected>25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
-                            <span>data per halaman</span>
-                        </div>
-                        <div id="pagination-info" class="font-medium text-slate-300">Menampilkan 0 - 0 dari 0 Member</div>
-                        <div class="flex items-center gap-1">
-                            <button id="btn-prev-page" onclick="changePage(-1)" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-white disabled:opacity-30 disabled:cursor-not-allowed">Previous</button>
-                            <span id="page-number-display" class="px-3 py-1 font-semibold text-sky-400">1 / 1</span>
-                            <button id="btn-next-page" onclick="changePage(1)" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded text-white disabled:opacity-30 disabled:cursor-not-allowed">Next</button>
+                        <div class="overflow-x-auto max-h-96 rounded-xl border border-slate-200">
+                            <table class="w-full text-left text-xs text-slate-700">
+                                <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-200 z-10">
+                                    <tr>
+                                        <th class="p-3">Client & Paket</th>
+                                        <th class="p-3">Trainer</th>
+                                        <th class="p-3 text-center">Sisa</th>
+                                        <th class="p-3 text-center">Aksi WA</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dash-table-inactive" class="divide-y divide-slate-100"></tbody>
+                            </table>
                         </div>
                     </div>
-
                 </div>
             </div>
-        </div>
-    </main>
+
+            <!-- VIEW 2: MODUL LAPORAN EVALUASI BERJALAN -->
+            <div id="view-evaluation" class="hidden space-y-6">
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-6 shadow-sm">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="line-chart" class="text-teal-600"></i> Laporan Evaluasi Berjalan & Performance Trainer
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-1">Ringkasan analitis rasio penyelesaian sesi, utilisasi paket, dan estimasi beban re-assessment.</p>
+                        </div>
+                        <button onclick="exportEvaluationSummary()" class="px-4 py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition shadow-md shadow-teal-700/20">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Download Laporan Ringkasan Evaluasi
+                        </button>
+                    </div>
+
+                    <!-- Evaluation Stat Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+                            <p class="text-xs font-semibold text-slate-500">Total Keseluruhan Paket Sesi</p>
+                            <p id="eval-total-sessions" class="text-2xl font-bold text-teal-700 mt-1">0 Sesi</p>
+                            <p class="text-[11px] text-slate-400 mt-1">Total sesi terdaftar di sistem</p>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+                            <p class="text-xs font-semibold text-slate-500">Total Sesi Telah Terpakai</p>
+                            <p id="eval-used-sessions" class="text-2xl font-bold text-emerald-700 mt-1">0 Sesi</p>
+                            <p id="eval-utilization-rate" class="text-[11px] text-emerald-600 font-semibold mt-1">Tingkat utilisasi: 0%</p>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+                            <p class="text-xs font-semibold text-slate-500">Peluang Renewal / Assessment</p>
+                            <p id="eval-renewal-target" class="text-2xl font-bold text-amber-700 mt-1">0 Member</p>
+                            <p class="text-[11px] text-slate-400 mt-1">Member dengan sisa &le; 3 sesi</p>
+                        </div>
+                    </div>
+
+                    <!-- Table Trainer Evaluation Breakdown -->
+                    <div class="space-y-3">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="users" class="w-4 h-4 text-teal-600"></i> Evaluasi Distribusi & Beban Sesi Per Trainer
+                        </h3>
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left text-xs text-slate-700">
+                                <thead class="bg-slate-100 text-slate-600 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3">Nama Trainer</th>
+                                        <th class="p-3 text-center">Total Client</th>
+                                        <th class="p-3 text-center">Client Aktif (>3)</th>
+                                        <th class="p-3 text-center">Segera Habis (1-3)</th>
+                                        <th class="p-3 text-center">Habis (0)</th>
+                                        <th class="p-3 text-center">Total Sesi Diampu</th>
+                                        <th class="p-3 text-center">Tingkat Selesai (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eval-trainer-table-body" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: CLIENT DATA & LOG MANAGEMENT -->
+            <div id="view-clients" class="hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    
+                    <!-- Upload / Input Schedule Section -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 lg:col-span-1 space-y-6 shadow-sm">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="upload-cloud" class="text-teal-600"></i> Log Sesi Harian
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-1">Upload screenshot jadwal, file Excel, atau input sesi secara langsung.</p>
+                        </div>
+
+                        <!-- OCR Foto Schedule Section -->
+                        <div class="pt-2 border-t border-slate-100 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <p class="text-xs font-bold text-teal-700 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i data-lucide="image" class="w-4 h-4"></i> Scan Foto Jadwal (OCR)
+                                </p>
+                                <span class="text-[10px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded-md font-mono font-bold">Bumi + Pintu</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500">Upload screenshot daily roster. Nama member yang terdeteksi di gambar akan dipotong sesinya otomatis.</p>
+                            <input type="file" id="ocr-photo-input" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-slate-100 file:text-teal-700 hover:file:bg-slate-200 font-medium">
+                            <button id="btn-scan-ocr" onclick="processScheduleOCR()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md shadow-teal-700/20">
+                                <i data-lucide="scan" class="w-4 h-4"></i> <span id="ocr-btn-label">Scan Foto & Potong Sesi</span>
+                            </button>
+                        </div>
+
+                        <!-- Manual Single Session Record -->
+                        <form id="session-form" onsubmit="handleSingleSession(event)" class="space-y-4 pt-4 border-t border-slate-100">
+                            <p class="text-xs font-bold text-teal-700 uppercase tracking-wider">Input Sesi Manual</p>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Member</label>
+                                <select id="select-client" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition"></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan Latihan</label>
+                                <input type="text" id="session-note" placeholder="Contoh: Leg Day / PT Smart" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                            </div>
+                            <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Potong 1 Sesi Otomatis
+                            </button>
+                        </form>
+
+                        <!-- DAFTAR MEMBER TERINPUT LOG SESI (DAILY, WEEKLY, MONTHLY) -->
+                        <div class="pt-4 border-t border-slate-100 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <p class="text-xs font-bold text-teal-700 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i data-lucide="history" class="w-4 h-4"></i> Histori Sesi Terinput
+                                </p>
+                                <span id="log-count-badge" class="bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Sesi</span>
+                            </div>
+                            
+                            <!-- Filter Tabs: Daily, Weekly, Monthly -->
+                            <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-[11px]">
+                                <button id="btn-log-daily" onclick="switchLogPeriod('daily')" class="py-1 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition">Hari Ini</button>
+                                <button id="btn-log-weekly" onclick="switchLogPeriod('weekly')" class="py-1 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition">Minggu Ini</button>
+                                <button id="btn-log-monthly" onclick="switchLogPeriod('monthly')" class="py-1 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition">Bulan Ini</button>
+                            </div>
+
+                            <!-- Table Log Record -->
+                            <div class="overflow-y-auto max-h-60 rounded-xl border border-slate-200 bg-white">
+                                <table class="w-full text-left text-[11px] text-slate-700">
+                                    <thead class="bg-slate-100 text-slate-500 uppercase text-[9px] tracking-wider sticky top-0 z-10 border-b border-slate-200">
+                                        <tr>
+                                            <th class="p-2">Waktu</th>
+                                            <th class="p-2">Member</th>
+                                            <th class="p-2 text-center">Metode</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="session-logs-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                            <button onclick="clearSessionLogs()" class="w-full py-1 text-[10px] text-slate-400 hover:text-rose-600 transition text-center font-medium">Hapus Histori Log</button>
+                        </div>
+                    </div>
+
+                    <!-- Client Table Section -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 lg:col-span-3 space-y-6 shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <i data-lucide="users" class="text-teal-600"></i> Kelola Data Client & Sesi
+                                </h2>
+                                <p class="text-xs text-slate-500 mt-1">Ubah nilai sesi secara manual atau filter data sesuai status sesi berjalan.</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="btn-bulk-delete" onclick="deleteSelectedClients()" class="hidden px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-md shadow-rose-600/20">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Terpilih (<span id="selected-count">0</span>)
+                                </button>
+                                <button onclick="exportFilteredClients()" class="px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
+                                    <i data-lucide="download" class="w-4 h-4"></i> Export Data
+                                </button>
+                                <button onclick="openAddClientModal()" class="px-3.5 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition shadow-md shadow-teal-700/20">
+                                    <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah / Import Excel
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Search & Filter Berjalan -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <input type="text" id="search-input" oninput="renderClients()" placeholder="Cari Nama Member..." class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                            <select id="filter-trainer" onchange="renderClients()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                                <option value="ALL">Semua Trainer</option>
+                            </select>
+                            <select id="filter-status" onchange="renderClients()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                                <option value="ALL">Semua Status Sesi</option>
+                                <option value="ACTIVE">Aktif (&gt; 3 Sesi)</option>
+                                <option value="WARNING">Segera Habis (1 - 3 Sesi)</option>
+                                <option value="EXPIRED">Sudah Habis (0 Sesi)</option>
+                            </select>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-left text-xs text-slate-700">
+                                <thead class="bg-slate-100 text-slate-600 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                                    <tr>
+                                        <th class="p-3.5 w-8"><input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" class="rounded border-slate-300 text-teal-600 focus:ring-teal-500"></th>
+                                        <th class="p-3.5">Client & Paket</th>
+                                        <th class="p-3.5">Trainer</th>
+                                        <th class="p-3.5 text-center">Total Sesi</th>
+                                        <th class="p-3.5 text-center">Terpakai</th>
+                                        <th class="p-3.5 text-center">Sisa Sesi</th>
+                                        <th class="p-3.5 text-center">Status</th>
+                                        <th class="p-3.5 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="client-table-body" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500 pt-2">
+                            <div class="flex items-center gap-2">
+                                <span>Tampilkan</span>
+                                <select id="page-size" onchange="changePageSize(this.value)" class="bg-slate-50 border border-slate-300 rounded-lg px-2 py-1 text-slate-800 focus:outline-none">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                                <span>data per halaman</span>
+                            </div>
+                            <div id="pagination-info" class="font-semibold text-slate-700">Menampilkan 0 - 0 dari 0 Member</div>
+                            <div class="flex items-center gap-1">
+                                <button id="btn-prev-page" onclick="changePage(-1)" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 rounded-lg text-slate-700 font-bold disabled:opacity-40 disabled:cursor-not-allowed">Previous</button>
+                                <span id="page-number-display" class="px-3 py-1 font-bold text-teal-700">1 / 1</span>
+                                <button id="btn-next-page" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 rounded-lg text-slate-700 font-bold disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <!-- Modal Edit Member Detail -->
-    <div id="edit-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-md space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                    <i data-lucide="edit-3" class="text-sky-400 w-5 h-5"></i> Edit Detail Member
+    <div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="edit-3" class="text-teal-600 w-5 h-5"></i> Edit Detail Member
                 </h3>
-                <button onclick="closeEditClientModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="closeEditClientModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <form id="edit-member-form" onsubmit="handleSaveEditClient(event)" class="space-y-3">
                 <input type="hidden" id="edit-client-id">
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Nama Member</label>
-                    <input type="text" id="edit-client-name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Member</label>
+                    <input type="text" id="edit-client-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Jenis Paket / Kode Paket</label>
-                    <input type="text" id="edit-client-package" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis Paket / Kode Paket</label>
+                    <input type="text" id="edit-client-package" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Trainer</label>
-                    <select id="edit-client-trainer" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"></select>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Trainer</label>
+                    <select id="edit-client-trainer" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600"></select>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs text-slate-300 mb-1">Total Paket Sesi</label>
-                        <input type="number" id="edit-client-total" required min="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Total Paket Sesi</label>
+                        <input type="number" id="edit-client-total" required min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-300 mb-1">Sesi Terpakai</label>
-                        <input type="number" id="edit-client-used" required min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-amber-400 focus:outline-none focus:border-sky-500">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Sesi Terpakai</label>
+                        <input type="number" id="edit-client-used" required min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-amber-700 focus:outline-none focus:border-teal-600">
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeEditClientModal()" class="px-3 py-1.5 bg-slate-700 text-slate-300 text-xs rounded-lg">Batal</button>
-                    <button type="submit" class="px-4 py-1.5 bg-sky-500 text-slate-950 font-semibold text-xs rounded-lg hover:bg-sky-400">Simpan Perubahan</button>
+                    <button type="button" onclick="closeEditClientModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-300">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-teal-700 text-white font-bold text-xs rounded-xl hover:bg-teal-800">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Modal Add Single / Import Excel Member -->
-    <div id="add-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-lg space-y-4">
-            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                    <i data-lucide="user-plus" class="text-sky-400 w-5 h-5"></i> Tambah / Import Member
+    <div id="add-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="user-plus" class="text-teal-600 w-5 h-5"></i> Tambah / Import Member
                 </h3>
-                <button onclick="closeAddClientModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="closeAddClientModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
-            <div class="flex border-b border-slate-700 text-xs font-semibold">
-                <button id="tab-btn-single" onclick="switchAddTab('single')" class="px-4 py-2 text-sky-400 border-b-2 border-sky-400 focus:outline-none">Tambah Satu Member</button>
-                <button id="tab-btn-excel" onclick="switchAddTab('excel')" class="px-4 py-2 text-slate-400 border-b-2 border-transparent hover:text-white focus:outline-none">Import Banyak via Excel</button>
+            <div class="flex border-b border-slate-200 text-xs font-semibold">
+                <button id="tab-btn-single" onclick="switchAddTab('single')" class="px-4 py-2.5 text-teal-700 border-b-2 border-teal-600 focus:outline-none font-bold">Tambah Satu Member</button>
+                <button id="tab-btn-excel" onclick="switchAddTab('excel')" class="px-4 py-2.5 text-slate-500 border-b-2 border-transparent hover:text-slate-900 focus:outline-none">Import Banyak via Excel</button>
             </div>
 
             <form id="add-single-form" onsubmit="handleAddSingleClient(event)" class="space-y-3 py-1">
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Nama Member</label>
-                    <input type="text" id="add-single-name" placeholder="Contoh: ARIESKA KURNIAWATY" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Member</label>
+                    <input type="text" id="add-single-name" placeholder="Contoh: ARIESKA KURNIAWATY" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Jenis Paket</label>
-                    <input type="text" id="add-single-package" placeholder="Contoh: 35 / PT Smart" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis Paket</label>
+                    <input type="text" id="add-single-package" placeholder="Contoh: 35 / PT Smart" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-300 mb-1">Trainer</label>
-                    <select id="add-single-trainer" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500"></select>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Trainer</label>
+                    <select id="add-single-trainer" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600"></select>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs text-slate-300 mb-1">Total Paket Sesi</label>
-                        <input type="number" id="add-single-total" value="35" required min="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Total Paket Sesi</label>
+                        <input type="number" id="add-single-total" value="35" required min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-300 mb-1">Sesi Terpakai Awal</label>
-                        <input type="number" id="add-single-used" value="0" required min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-amber-400 focus:outline-none focus:border-sky-500">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Sesi Terpakai Awal</label>
+                        <input type="number" id="add-single-used" value="0" required min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-amber-700 focus:outline-none focus:border-teal-600">
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeAddClientModal()" class="px-3 py-1.5 bg-slate-700 text-slate-300 text-xs rounded-lg">Batal</button>
-                    <button type="submit" class="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs rounded-lg">Simpan Member</button>
+                    <button type="button" onclick="closeAddClientModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-teal-700 text-white font-bold text-xs rounded-xl hover:bg-teal-800">Simpan Member</button>
                 </div>
             </form>
 
             <div id="add-excel-section" class="hidden space-y-4 py-2">
-                <p class="text-xs text-slate-300">Unggah file Excel berisi daftar member. Kolom wajib: <b>Nama Client, Trainer, Paket, Sisa Sesi</b>.</p>
-                <input type="file" id="batch-excel-file" accept=".xlsx, .xls" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-700 file:text-sky-400 hover:file:bg-slate-600">
+                <p class="text-xs text-slate-600">Unggah file Excel berisi daftar member. Kolom wajib: <b>Nama Client, Trainer, Paket, Sisa Sesi</b>.</p>
+                <input type="file" id="batch-excel-file" accept=".xlsx, .xls" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-slate-100 file:text-teal-700 hover:file:bg-slate-200 font-medium">
                 <div class="flex justify-between items-center pt-2">
-                    <button onclick="downloadExcelTemplate()" class="text-xs text-sky-400 hover:underline flex items-center gap-1">
+                    <button onclick="downloadExcelTemplate()" class="text-xs text-teal-700 font-bold hover:underline flex items-center gap-1">
                         <i data-lucide="download" class="w-3.5 h-3.5"></i> Download Template
                     </button>
-                    <button onclick="processBatchExcelUpload()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs rounded-lg transition">Import & Sync Excel</button>
+                    <button onclick="processBatchExcelUpload()" class="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl transition">Import & Sync Excel</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Modal Firebase Config -->
-    <div id="firebase-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-md space-y-4">
-            <h3 class="text-base font-bold text-white flex items-center gap-2">
-                <i data-lucide="database" class="text-amber-400 w-5 h-5"></i> Pengaturan Firebase Firestore
+    <div id="firebase-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="database" class="text-amber-600 w-5 h-5"></i> Pengaturan Firebase Firestore
             </h3>
-            <p class="text-xs text-slate-400">Tempelkan konfigurasi JSON Firebase proyek Anda di bawah ini untuk sinkronisasi cloud real-time.</p>
-            <textarea id="firebase-config-input" rows="6" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "..."}' class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs font-mono text-white focus:outline-none focus:border-amber-500"></textarea>
+            <p class="text-xs text-slate-500">Tempelkan konfigurasi JSON Firebase proyek Anda di bawah ini untuk sinkronisasi cloud real-time.</p>
+            <textarea id="firebase-config-input" rows="6" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "..."}' class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-mono text-slate-800 focus:outline-none focus:border-teal-600"></textarea>
             <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeFirebaseModal()" class="px-3 py-1.5 bg-slate-700 text-slate-300 text-xs rounded-lg">Batal</button>
-                <button onclick="saveFirebaseConfig()" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-lg">Simpan & Hubungkan</button>
+                <button onclick="closeFirebaseModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl">Batal</button>
+                <button onclick="saveFirebaseConfig()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl">Simpan & Hubungkan</button>
             </div>
         </div>
     </div>
 
-    <!-- Script Application -->
+    <!-- Script Application Logics (All preserved) -->
     <script>
         const TRAINERS = [
             "Arini Permata Pahwandi", "Bima Aminullah", "Caraka Vira Satriya",
@@ -692,7 +734,7 @@
                 currentUserRole = savedSession.role || 'ADMIN';
                 loginOverlay.classList.add('hidden');
                 document.getElementById('active-username').innerText = savedSession.displayName || 'M Fatihin';
-                document.getElementById('active-role').innerText = currentUserRole;
+                document.getElementById('active-role').innerText = currentUserRole === 'ADMIN' ? 'FITNESS MANAGER' : 'TRAINER';
                 applyRolePermissions();
             } else {
                 loginOverlay.classList.remove('hidden');
@@ -811,21 +853,21 @@
             evalView.classList.add('hidden');
             clientView.classList.add('hidden');
 
-            navDash.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2";
-            navEval.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2";
-            navClients.className = "px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition flex items-center gap-2";
+            navDash.className = "w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition";
+            navEval.className = "w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition";
+            navClients.className = "w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition";
 
             if (viewName === 'dashboard') {
                 dashView.classList.remove('hidden');
-                navDash.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2";
+                navDash.className = "sidebar-active-tab w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold transition";
                 renderDashboard();
             } else if (viewName === 'evaluation') {
                 evalView.classList.remove('hidden');
-                navEval.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2";
+                navEval.className = "sidebar-active-tab w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold transition";
                 renderEvaluationReport();
             } else {
                 clientView.classList.remove('hidden');
-                navClients.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 text-slate-950 transition flex items-center gap-2";
+                navClients.className = "sidebar-active-tab w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold transition";
                 renderClients();
                 renderSessionLogs();
             }
@@ -877,14 +919,14 @@
                 id: Date.now() + Math.random(),
                 clientName: clientName,
                 trainerName: trainerName,
-                method: method, // 'OCR' atau 'MANUAL'
+                method: method,
                 note: note,
                 timestamp: now.toISOString(),
                 formattedTime: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
                 formattedDate: `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`
             };
 
-            sessionLogs.unshift(logEntry); // Simpan di urutan teratas
+            sessionLogs.unshift(logEntry);
             localStorage.setItem('ftl_session_logs', JSON.stringify(sessionLogs));
             renderSessionLogs();
         }
@@ -895,16 +937,16 @@
             const btnWeekly = document.getElementById('btn-log-weekly');
             const btnMonthly = document.getElementById('btn-log-monthly');
 
-            btnDaily.className = "py-1 rounded font-semibold text-slate-400 hover:text-white transition";
-            btnWeekly.className = "py-1 rounded font-semibold text-slate-400 hover:text-white transition";
-            btnMonthly.className = "py-1 rounded font-semibold text-slate-400 hover:text-white transition";
+            btnDaily.className = "py-1 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition";
+            btnWeekly.className = "py-1 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition";
+            btnMonthly.className = "py-1 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition";
 
             if (period === 'daily') {
-                btnDaily.className = "py-1 rounded font-semibold bg-sky-500 text-slate-950 transition";
+                btnDaily.className = "py-1 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition";
             } else if (period === 'weekly') {
-                btnWeekly.className = "py-1 rounded font-semibold bg-sky-500 text-slate-950 transition";
+                btnWeekly.className = "py-1 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition";
             } else if (period === 'monthly') {
-                btnMonthly.className = "py-1 rounded font-semibold bg-sky-500 text-slate-950 transition";
+                btnMonthly.className = "py-1 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition";
             }
 
             renderSessionLogs();
@@ -935,25 +977,25 @@
             document.getElementById('log-count-badge').innerText = `${filteredLogs.length} Sesi`;
 
             if (filteredLogs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-slate-500 italic text-[10px]">Belum ada sesi terinput untuk periode ini</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-slate-400 italic text-[10px]">Belum ada sesi terinput untuk periode ini</td></tr>`;
                 return;
             }
 
             filteredLogs.forEach(log => {
                 const isOCR = log.method === 'OCR';
                 const badgeMethod = isOCR 
-                    ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-500/20 text-sky-300">OCR</span>`
-                    : `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300">Manual</span>`;
+                    ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-teal-100 text-teal-800">OCR</span>`
+                    : `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800">Manual</span>`;
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-800/80">
-                        <td class="p-2 text-slate-400 font-mono text-[10px]">
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-2 text-slate-500 font-mono text-[10px]">
                             <div>${log.formattedTime}</div>
-                            <div class="text-[9px] text-slate-500">${log.formattedDate}</div>
+                            <div class="text-[9px] text-slate-400">${log.formattedDate}</div>
                         </td>
                         <td class="p-2">
-                            <div class="font-semibold text-white truncate max-w-[120px]" title="${log.clientName}">${log.clientName}</div>
-                            <div class="text-[9px] text-slate-400 truncate max-w-[120px]">${log.trainerName || '-'}</div>
+                            <div class="font-bold text-slate-900 truncate max-w-[120px]" title="${log.clientName}">${log.clientName}</div>
+                            <div class="text-[9px] text-slate-500 truncate max-w-[120px]">${log.trainerName || '-'}</div>
                         </td>
                         <td class="p-2 text-center">${badgeMethod}</td>
                     </tr>
@@ -1148,14 +1190,14 @@
 
             trainerEvalData.forEach(row => {
                 evalTableBody.innerHTML += `
-                    <tr class="hover:bg-slate-700/30">
-                        <td class="p-3 font-semibold text-white">${row.trainer}</td>
-                        <td class="p-3 text-center font-bold text-sky-400">${row.totalClients}</td>
-                        <td class="p-3 text-center text-emerald-400 font-semibold">${row.active}</td>
-                        <td class="p-3 text-center text-amber-400 font-semibold">${row.warning}</td>
-                        <td class="p-3 text-center text-rose-400 font-semibold">${row.expired}</td>
-                        <td class="p-3 text-center font-mono">${row.usedSessions} / ${row.totalSessions}</td>
-                        <td class="p-3 text-center font-bold ${parseFloat(row.completionRate) >= 70 ? 'text-emerald-400' : 'text-amber-400'}">${row.completionRate}%</td>
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-bold text-slate-900">${row.trainer}</td>
+                        <td class="p-3 text-center font-bold text-teal-700">${row.totalClients}</td>
+                        <td class="p-3 text-center text-emerald-700 font-bold">${row.active}</td>
+                        <td class="p-3 text-center text-amber-700 font-bold">${row.warning}</td>
+                        <td class="p-3 text-center text-rose-700 font-bold">${row.expired}</td>
+                        <td class="p-3 text-center font-mono text-slate-700">${row.usedSessions} / ${row.totalSessions}</td>
+                        <td class="p-3 text-center font-bold ${parseFloat(row.completionRate) >= 70 ? 'text-emerald-700' : 'text-amber-700'}">${row.completionRate}%</td>
                     </tr>
                 `;
             });
@@ -1323,13 +1365,13 @@
             const sectionExcel = document.getElementById('add-excel-section');
 
             if (tab === 'single') {
-                btnSingle.className = "px-4 py-2 text-sky-400 border-b-2 border-sky-400 focus:outline-none";
-                btnExcel.className = "px-4 py-2 text-slate-400 border-b-2 border-transparent hover:text-white focus:outline-none";
+                btnSingle.className = "px-4 py-2.5 text-teal-700 border-b-2 border-teal-600 focus:outline-none font-bold";
+                btnExcel.className = "px-4 py-2.5 text-slate-500 border-b-2 border-transparent hover:text-slate-900 focus:outline-none";
                 formSingle.classList.remove('hidden');
                 sectionExcel.classList.add('hidden');
             } else {
-                btnExcel.className = "px-4 py-2 text-sky-400 border-b-2 border-sky-400 focus:outline-none";
-                btnSingle.className = "px-4 py-2 text-slate-400 border-b-2 border-transparent hover:text-white focus:outline-none";
+                btnExcel.className = "px-4 py-2.5 text-teal-700 border-b-2 border-teal-600 focus:outline-none font-bold";
+                btnSingle.className = "px-4 py-2.5 text-slate-500 border-b-2 border-transparent hover:text-slate-900 focus:outline-none";
                 sectionExcel.classList.remove('hidden');
                 formSingle.classList.add('hidden');
             }
@@ -1397,7 +1439,7 @@
                 const tbody = document.getElementById(targetElementId);
                 tbody.innerHTML = '';
                 if (dataList.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="p-2.5 text-center text-slate-500 italic text-[11px]">Tidak ada member</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-2.5 text-center text-slate-400 italic text-[11px]">Tidak ada member</td></tr>';
                 } else {
                     dataList.forEach(c => {
                         const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
@@ -1406,16 +1448,16 @@
                         const safePkg = (c.package || 'PT Smart').replace(/'/g, "\\'");
 
                         tbody.innerHTML += `
-                            <tr class="hover:bg-slate-800/60">
+                            <tr class="hover:bg-slate-50">
                                 <td class="p-2">
-                                    <div class="font-semibold text-white text-[11px] truncate max-w-[110px]" title="${c.name}">${c.name}</div>
-                                    <div class="text-[9px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
+                                    <div class="font-bold text-slate-900 text-[11px] truncate max-w-[110px]" title="${c.name}">${c.name}</div>
+                                    <div class="text-[9px] text-teal-700 font-mono font-semibold">${c.package || 'PT Smart'}</div>
                                 </td>
-                                <td class="p-2 text-slate-300 text-[10px] truncate max-w-[90px]" title="${c.trainer || 'Lainnya'}">${c.trainer || 'Lainnya'}</td>
+                                <td class="p-2 text-slate-600 text-[10px] truncate max-w-[90px]" title="${c.trainer || 'Lainnya'}">${c.trainer || 'Lainnya'}</td>
                                 <td class="p-2 text-center font-bold text-[11px] ${highlightColorClass}">${rem}</td>
                                 <td class="p-2 text-center">
-                                    <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, '${noticeType}')" class="p-1 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-semibold text-[10px] rounded flex items-center justify-center mx-auto transition" title="Chat WA Trainer">
-                                        <i data-lucide="message-square" class="w-3 h-3"></i>
+                                    <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, '${noticeType}')" class="p-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] rounded-lg flex items-center justify-center mx-auto transition" title="Chat WA Trainer">
+                                        <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -1424,15 +1466,15 @@
                 }
             };
 
-            populateSubTable('table-sess-10', listSess10, 'NOTICE_10', 'text-sky-400');
-            populateSubTable('table-sess-5', listSess5, 'NOTICE_5', 'text-amber-400');
-            populateSubTable('table-sess-3', listSess3, 'WARNING', 'text-rose-400');
+            populateSubTable('table-sess-10', listSess10, 'NOTICE_10', 'text-teal-700');
+            populateSubTable('table-sess-5', listSess5, 'NOTICE_5', 'text-amber-700');
+            populateSubTable('table-sess-3', listSess3, 'WARNING', 'text-rose-700');
 
             // Tabel Client Sesi Hampir Habis (Sisa 1-3 Sesi Ringkasan)
             const tableWarningBody = document.getElementById('dash-table-warning');
             tableWarningBody.innerHTML = '';
             if (warningClients.length === 0) {
-                tableWarningBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-500 italic">Tidak ada member sesi hampir habis</td></tr>';
+                tableWarningBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400 italic">Tidak ada member sesi hampir habis</td></tr>';
             } else {
                 warningClients.forEach(c => {
                     const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
@@ -1441,15 +1483,15 @@
                     const safePkg = (c.package || 'PT Smart').replace(/'/g, "\\'");
 
                     tableWarningBody.innerHTML += `
-                        <tr class="hover:bg-slate-700/30">
-                            <td class="p-2.5">
-                                <div class="font-semibold text-white">${c.name}</div>
-                                <div class="text-[10px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3">
+                                <div class="font-bold text-slate-900">${c.name}</div>
+                                <div class="text-[10px] text-teal-700 font-mono font-semibold">${c.package || 'PT Smart'}</div>
                             </td>
-                            <td class="p-2.5 text-slate-300 text-xs">${c.trainer || 'Lainnya'}</td>
-                            <td class="p-2.5 text-center font-bold text-amber-400">${rem} Sesi</td>
-                            <td class="p-2.5 text-center">
-                                <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, 'WARNING')" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-semibold text-[10px] rounded flex items-center justify-center gap-1 mx-auto transition" title="Copy Pesan WA & Buka WhatsApp">
+                            <td class="p-3 text-slate-600 text-xs">${c.trainer || 'Lainnya'}</td>
+                            <td class="p-3 text-center font-bold text-amber-700">${rem} Sesi</td>
+                            <td class="p-3 text-center">
+                                <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, 'WARNING')" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] rounded-lg flex items-center justify-center gap-1 mx-auto transition" title="Copy Pesan WA & Buka WhatsApp">
                                     <i data-lucide="message-square" class="w-3 h-3"></i> Chat WA
                                 </button>
                             </td>
@@ -1462,7 +1504,7 @@
             const tableInactiveBody = document.getElementById('dash-table-inactive');
             tableInactiveBody.innerHTML = '';
             if (inactiveClients.length === 0) {
-                tableInactiveBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-500 italic">Tidak ada member sesi habis</td></tr>';
+                tableInactiveBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400 italic">Tidak ada member sesi habis</td></tr>';
             } else {
                 inactiveClients.forEach(c => {
                     const safeName = c.name.replace(/'/g, "\\'");
@@ -1470,15 +1512,15 @@
                     const safePkg = (c.package || 'PT Smart').replace(/'/g, "\\'");
 
                     tableInactiveBody.innerHTML += `
-                        <tr class="hover:bg-slate-700/30">
-                            <td class="p-2.5">
-                                <div class="font-semibold text-white">${c.name}</div>
-                                <div class="text-[10px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3">
+                                <div class="font-bold text-slate-900">${c.name}</div>
+                                <div class="text-[10px] text-teal-700 font-mono font-semibold">${c.package || 'PT Smart'}</div>
                             </td>
-                            <td class="p-2.5 text-slate-300 text-xs">${c.trainer || 'Lainnya'}</td>
-                            <td class="p-2.5 text-center font-bold text-rose-400">0 Sesi</td>
-                            <td class="p-2.5 text-center">
-                                <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', 0, 'EXPIRED')" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-semibold text-[10px] rounded flex items-center justify-center gap-1 mx-auto transition" title="Copy Pesan WA & Buka WhatsApp">
+                            <td class="p-3 text-slate-600 text-xs">${c.trainer || 'Lainnya'}</td>
+                            <td class="p-3 text-center font-bold text-rose-700">0 Sesi</td>
+                            <td class="p-3 text-center">
+                                <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', 0, 'EXPIRED')" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] rounded-lg flex items-center justify-center gap-1 mx-auto transition" title="Copy Pesan WA & Buka WhatsApp">
                                     <i data-lucide="message-square" class="w-3 h-3"></i> Chat WA
                                 </button>
                             </td>
@@ -1541,37 +1583,37 @@
                 const used = c.used || 0;
                 const remaining = total - used;
 
-                let statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Aktif</span>';
+                let statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Aktif</span>';
                 if (remaining <= 0) {
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Habis</span>';
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">Habis</span>';
                 } else if (remaining <= 3) {
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Hampir Habis</span>';
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Hampir Habis</span>';
                 }
 
                 tableBody.innerHTML += `
-                    <tr class="hover:bg-slate-700/30 transition">
-                        <td class="p-3"><input type="checkbox" onchange="toggleSelectClient(${c.id})" ${selectedClientIds.has(c.id) ? 'checked' : ''} class="rounded bg-slate-900 border-slate-700"></td>
-                        <td class="p-3">
-                            <div class="font-semibold text-white">${c.name}</div>
-                            <div class="text-[10px] text-sky-400 font-mono">${c.package || 'PT Smart'}</div>
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3.5"><input type="checkbox" onchange="toggleSelectClient(${c.id})" ${selectedClientIds.has(c.id) ? 'checked' : ''} class="rounded border-slate-300 text-teal-600 focus:ring-teal-500"></td>
+                        <td class="p-3.5">
+                            <div class="font-bold text-slate-900">${c.name}</div>
+                            <div class="text-[10px] text-teal-700 font-mono font-semibold">${c.package || 'PT Smart'}</div>
                         </td>
-                        <td class="p-3 text-slate-300 text-xs">${c.trainer || 'Lainnya'}</td>
-                        <td class="p-3 text-center">
-                            <input type="number" value="${total}" min="1" onchange="updateClientTotal(${c.id}, this.value)" class="w-16 text-center bg-slate-900 border border-slate-700 rounded py-1 text-xs text-white focus:outline-none focus:border-sky-500">
+                        <td class="p-3.5 text-slate-600 text-xs">${c.trainer || 'Lainnya'}</td>
+                        <td class="p-3.5 text-center">
+                            <input type="number" value="${total}" min="1" onchange="updateClientTotal(${c.id}, this.value)" class="w-16 text-center bg-slate-50 border border-slate-300 rounded-lg py-1 text-xs text-slate-900 focus:outline-none focus:border-teal-600 font-semibold">
                         </td>
-                        <td class="p-3 text-center">
-                            <input type="number" value="${used}" min="0" onchange="updateClientUsed(${c.id}, this.value)" class="w-16 text-center bg-slate-900 border border-slate-700 rounded py-1 text-xs font-bold text-amber-400 focus:outline-none focus:border-sky-500">
+                        <td class="p-3.5 text-center">
+                            <input type="number" value="${used}" min="0" onchange="updateClientUsed(${c.id}, this.value)" class="w-16 text-center bg-slate-50 border border-slate-300 rounded-lg py-1 text-xs font-bold text-amber-700 focus:outline-none focus:border-teal-600">
                         </td>
-                        <td class="p-3 text-center font-bold ${remaining <= 3 ? 'text-amber-400' : 'text-sky-400'}">${remaining}</td>
-                        <td class="p-3 text-center">${statusBadge}</td>
-                        <td class="p-3 text-center space-x-1">
-                            <button onclick="openEditClientModal(${c.id})" class="p-1 bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 rounded transition" title="Edit Detail Member">
+                        <td class="p-3.5 text-center font-bold ${remaining <= 3 ? 'text-amber-700' : 'text-teal-700'}">${remaining}</td>
+                        <td class="p-3.5 text-center">${statusBadge}</td>
+                        <td class="p-3.5 text-center space-x-1">
+                            <button onclick="openEditClientModal(${c.id})" class="p-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg transition" title="Edit Detail Member">
                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="deductSession(${c.id})" ${remaining <= 0 ? 'disabled' : ''} class="p-1 bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-slate-950 rounded transition disabled:opacity-30" title="Potong 1 Sesi">
+                            <button onclick="deductSession(${c.id})" ${remaining <= 0 ? 'disabled' : ''} class="p-1.5 bg-teal-100 hover:bg-teal-200 text-teal-800 rounded-lg transition disabled:opacity-30" title="Potong 1 Sesi">
                                 <i data-lucide="minus-circle" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="deleteClient(${c.id})" class="p-1 bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white rounded transition" title="Hapus Member">
+                            <button onclick="deleteClient(${c.id})" class="p-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg transition" title="Hapus Member">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </td>
@@ -1600,19 +1642,19 @@
                 data: {
                     labels: TRAINERS.map(t => t.split(' ')[0]),
                     datasets: [
-                        { label: 'Aktif (>3)', data: trainerActiveCounts, backgroundColor: '#38bdf8' },
-                        { label: 'Akan Habis (1-3)', data: trainerWarningCounts, backgroundColor: '#fbbf24' },
-                        { label: 'Habis (0)', data: trainerInactiveCounts, backgroundColor: '#f43f5e' }
+                        { label: 'Aktif (>3)', data: trainerActiveCounts, backgroundColor: '#0d9488' },
+                        { label: 'Akan Habis (1-3)', data: trainerWarningCounts, backgroundColor: '#d97706' },
+                        { label: 'Habis (0)', data: trainerInactiveCounts, backgroundColor: '#e11d48' }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { stacked: true, ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
-                        y: { stacked: true, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+                        x: { stacked: true, ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } },
+                        y: { stacked: true, ticks: { color: '#64748b' }, grid: { color: '#f1f5f9' } }
                     },
-                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } }
+                    plugins: { legend: { labels: { color: '#475569', font: { size: 10, weight: '600' } } } }
                 }
             });
 
@@ -1625,14 +1667,14 @@
                     labels: ['Aktif (>3)', 'Akan Habis (1-3)', 'Habis (0)'],
                     datasets: [{
                         data: [Math.max(0, activeCount - warningCount), warningCount, inactiveCount],
-                        backgroundColor: ['#10b981', '#fbbf24', '#f43f5e'],
+                        backgroundColor: ['#10b981', '#f59e0b', '#f43f5e'],
                         borderWidth: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } }
+                    plugins: { legend: { position: 'bottom', labels: { color: '#475569', font: { size: 10, weight: '600' } } } }
                 }
             });
         }
