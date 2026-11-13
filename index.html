@@ -2,7 +2,10 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e293b">
     <title>FTL Gym Tracker Pro v7 - Client Tracking & Evaluation System</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,13 +27,29 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        /* Custom Scrollbar for Light Theme */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 8px; }
         ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 8px; }
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        /* Smooth horizontal scrolling on iOS/Android */
+        .scroll-touch {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* iOS Safe Area Support */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        .pt-safe {
+            padding-top: env(safe-area-inset-top, 0px);
+        }
 
         .sidebar-active-tab {
             background-color: #f1f5f9;
@@ -60,21 +79,21 @@
         .toast-enter { animation: slideInRight 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row antialiased">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row antialiased pb-16 md:pb-0">
 
     <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-[110] flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+    <div id="toast-container" class="fixed bottom-20 md:bottom-5 right-4 left-4 md:left-auto z-[110] flex flex-col gap-2 md:max-w-sm pointer-events-none"></div>
 
     <!-- MODAL SCREEN / OVERLAY LOGIN (SECURED ACCESS) -->
     <div id="login-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-200 rounded-3xl p-8 w-full max-w-md space-y-6 shadow-2xl">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 w-full max-w-md space-y-6 shadow-2xl">
             <div class="text-center space-y-2">
                 <div class="inline-flex bg-teal-600 p-3.5 rounded-2xl text-white mb-1 shadow-lg shadow-teal-600/30">
                     <i data-lucide="dumbbell" class="w-8 h-8"></i>
                 </div>
                 <div class="flex items-center justify-center gap-2">
                     <h2 class="text-2xl font-bold text-slate-900 tracking-tight">FTL GYM TRACKER</h2>
-                    <span class="px-2 py-0.5 text-[10px] font-extrabold bg-teal-100 text-teal-800 rounded-full">v7.0</span>
+                    <span class="px-2 py-0.5 text-[10px] font-extrabold bg-teal-100 text-teal-800 rounded-full">v7.2</span>
                 </div>
                 <p id="login-branch-subtitle" class="text-xs text-teal-700 font-semibold">Session & Performance System - Depok Lama</p>
             </div>
@@ -82,77 +101,85 @@
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Email Resmi</label>
-                    <input type="email" id="login-email" value="mfatihin96@gmail.com" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                    <input type="email" id="login-email" value="mfatihin96@gmail.com" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
                 </div>
                 <div>
                     <div class="flex justify-between items-center mb-1.5">
                         <label class="block text-xs font-semibold text-slate-700">Password</label>
                         <button type="button" onclick="handleForgotPassword()" class="text-[11px] text-teal-700 hover:underline font-medium">Lupa Password?</button>
                     </div>
-                    <input type="password" id="login-password" placeholder="••••••••" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                    <input type="password" id="login-password" placeholder="••••••••" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Role Akses</label>
-                    <select id="login-role" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                    <select id="login-role" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
                         <option value="ADMIN">Manager / Fitness Manager (Full Akses)</option>
                         <option value="TRAINER">Trainer / Staff (Terbatas)</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-teal-700/20">
+                <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3.5 rounded-xl text-sm md:text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-teal-700/20">
                     <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Ke Aplikasi v7
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- SIDEBAR NAVIGASI KIRI -->
-    <aside class="w-full md:w-64 bg-slate-800 text-slate-300 flex-shrink-0 flex flex-col justify-between py-6 pl-4 pr-0 min-h-screen">
-        <div class="space-y-8">
-            <!-- User Profile Block -->
-            <div class="flex items-center gap-3 px-3 pr-4">
-                <div class="w-12 h-12 rounded-full bg-teal-500/20 border-2 border-teal-400/40 p-0.5 overflow-hidden flex-shrink-0">
-                    <img id="sidebar-avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Avatar" class="w-full h-full object-cover rounded-full">
-                </div>
-                <div class="overflow-hidden">
-                    <div class="flex items-center gap-1.5">
-                        <h3 id="active-username" class="font-bold text-sm text-white truncate">M Fatihin</h3>
-                        <span class="bg-teal-500/20 text-teal-300 border border-teal-500/30 text-[9px] font-extrabold px-1.5 py-0.2 rounded">v7</span>
+    <!-- MOBILE SIDEBAR BACKDROP OVERLAY -->
+    <div id="mobile-sidebar-backdrop" onclick="toggleMobileSidebar(false)" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden md:hidden transition-opacity"></div>
+
+    <!-- SIDEBAR NAVIGASI (SLIDE-OVER DRAWER DI HP, FIXED SIDEBAR DI DESKTOP) -->
+    <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-50 w-72 md:w-64 bg-slate-800 text-slate-300 flex-shrink-0 flex flex-col justify-between py-6 pl-4 pr-0 transform -translate-x-full md:translate-x-0 md:static md:min-h-screen transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none">
+        <div class="space-y-7 overflow-y-auto">
+            <!-- Header Sidebar + Close Button for Mobile -->
+            <div class="flex items-center justify-between px-3 pr-4">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="w-11 h-11 rounded-full bg-teal-500/20 border-2 border-teal-400/40 p-0.5 overflow-hidden flex-shrink-0">
+                        <img id="sidebar-avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Avatar" class="w-full h-full object-cover rounded-full">
                     </div>
-                    <p id="active-role" class="text-[11px] text-teal-400 font-semibold truncate">FITNESS MANAGER</p>
-                    <p id="active-email-display" class="text-[10px] text-slate-400 truncate">mfatihin96@gmail.com</p>
+                    <div class="overflow-hidden">
+                        <div class="flex items-center gap-1.5">
+                            <h3 id="active-username" class="font-bold text-sm text-white truncate">M Fatihin</h3>
+                            <span class="bg-teal-500/20 text-teal-300 border border-teal-500/30 text-[9px] font-extrabold px-1.5 py-0.2 rounded">v7</span>
+                        </div>
+                        <p id="active-role" class="text-[11px] text-teal-400 font-semibold truncate">FITNESS MANAGER</p>
+                        <p id="active-email-display" class="text-[10px] text-slate-400 truncate">mfatihin96@gmail.com</p>
+                    </div>
                 </div>
+                <button onclick="toggleMobileSidebar(false)" class="md:hidden p-2 text-slate-400 hover:text-white rounded-xl bg-slate-700/50">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
             </div>
 
             <!-- Navigation Links -->
             <nav class="space-y-1.5 pr-0">
-                <button id="nav-dashboard" onclick="switchView('dashboard')" class="sidebar-active-tab w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold transition">
+                <button id="nav-dashboard" onclick="switchView('dashboard')" class="sidebar-active-tab w-full flex items-center gap-3 px-4 py-3.5 md:py-3 text-sm md:text-xs font-semibold transition">
                     <i data-lucide="layout-dashboard" class="w-4 h-4 text-teal-600"></i> Monitoring
                 </button>
-                <button id="nav-evaluation" onclick="switchView('evaluation')" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition">
+                <button id="nav-evaluation" onclick="switchView('evaluation')" class="w-full flex items-center gap-3 px-4 py-3.5 md:py-3 text-sm md:text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition">
                     <i data-lucide="line-chart" class="w-4 h-4"></i> Laporan Evaluasi
                 </button>
-                <button id="nav-clients" onclick="switchView('clients')" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition">
+                <button id="nav-clients" onclick="switchView('clients')" class="w-full flex items-center gap-3 px-4 py-3.5 md:py-3 text-sm md:text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition">
                     <i data-lucide="users" class="w-4 h-4"></i> Data Client & Log
                 </button>
-                <button id="nav-settings" onclick="switchView('settings')" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition">
+                <button id="nav-settings" onclick="switchView('settings')" class="w-full flex items-center gap-3 px-4 py-3.5 md:py-3 text-sm md:text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition">
                     <i data-lucide="settings" class="w-4 h-4"></i> Pengaturan
                 </button>
             </nav>
         </div>
 
         <!-- System & Backup Tools Footer -->
-        <div class="space-y-2 pr-4 pt-6 border-t border-slate-700/60">
-            <div class="px-3 py-1.5 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+        <div class="space-y-2 pr-4 pt-5 border-t border-slate-700/60">
+            <div class="px-3 py-1 flex items-center justify-between text-[10px] text-slate-400 font-mono">
                 <span>BUILD VERSION</span>
-                <span class="text-teal-400 font-bold">v7.1.2026</span>
+                <span class="text-teal-400 font-bold">v7.2 Mobile</span>
             </div>
-            <button onclick="openFirebaseConfigModal()" class="w-full px-3 py-2 bg-slate-700/60 hover:bg-slate-700 text-amber-400 text-xs font-semibold rounded-xl flex items-center gap-2 transition">
+            <button onclick="openFirebaseConfigModal(); toggleMobileSidebar(false);" class="w-full px-3 py-2.5 md:py-2 bg-slate-700/60 hover:bg-slate-700 text-amber-400 text-xs font-semibold rounded-xl flex items-center gap-2 transition">
                 <i data-lucide="database" class="w-4 h-4"></i> Firebase Cloud
             </button>
-            <button onclick="exportData()" class="w-full px-3 py-2 bg-slate-700/60 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center gap-2 transition">
+            <button onclick="exportData(); toggleMobileSidebar(false);" class="w-full px-3 py-2.5 md:py-2 bg-slate-700/60 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center gap-2 transition">
                 <i data-lucide="download" class="w-4 h-4 text-teal-400"></i> Backup JSON
             </button>
-            <button onclick="handleLogout()" class="w-full px-3 py-2 bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition">
+            <button onclick="handleLogout()" class="w-full px-3 py-2.5 md:py-2 bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition">
                 <i data-lucide="log-out" class="w-4 h-4"></i> Logout System
             </button>
         </div>
@@ -161,100 +188,114 @@
     <!-- MAIN CANVAS CONTENT AREA -->
     <div class="flex-1 flex flex-col min-w-0 bg-slate-100 min-h-screen">
 
-        <!-- Top Header Bar (Welcome & Clock) -->
-        <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-40">
-            <div>
-                <div class="flex items-center gap-2.5">
-                    <h1 id="header-welcome-title" class="text-xl font-bold text-slate-900 tracking-tight">Welcome M Fatihin !</h1>
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">System v7</span>
+        <!-- Top Header Bar (Responsive Mobile & Desktop) -->
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3.5 sm:py-4 flex flex-col gap-3 sticky top-0 z-40 pt-safe shadow-xs md:shadow-none">
+            <div class="flex justify-between items-center gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <!-- Mobile Hamburger Button -->
+                    <button onclick="toggleMobileSidebar(true)" class="md:hidden p-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl flex-shrink-0 active:scale-95 transition" aria-label="Buka Menu">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h1 id="header-welcome-title" class="text-base sm:text-xl font-bold text-slate-900 tracking-tight truncate">Welcome M Fatihin !</h1>
+                            <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">v7</span>
+                        </div>
+                        <p id="header-branch-subtitle" class="text-[11px] sm:text-xs text-slate-500 truncate">FTL Gym Depok Lama - Performance & Session</p>
+                    </div>
                 </div>
-                <p id="header-branch-subtitle" class="text-xs text-slate-500">FTL Gym Depok Lama - Performance & Session Management</p>
+
+                <div class="flex items-center gap-2.5 sm:gap-4 flex-shrink-0">
+                    <!-- Desktop Global Quick Search Box -->
+                    <div class="relative hidden lg:block">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="global-quick-search" oninput="handleGlobalSearch(this.value)" placeholder="Cari cepat nama member..." class="bg-slate-100 border border-slate-200 rounded-full pl-9 pr-4 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-teal-600 focus:bg-white w-56 transition">
+                    </div>
+
+                    <!-- Realtime Clock Widget (Compact on Mobile) -->
+                    <div class="flex items-center gap-1.5 sm:gap-2.5 bg-slate-100 border border-slate-200 px-2.5 sm:px-3.5 py-1.5 rounded-full font-mono text-[11px] sm:text-xs">
+                        <i data-lucide="clock" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-600"></i>
+                        <span id="realtime-clock" class="font-bold text-slate-800 tracking-wider">00:00:00 WIB</span>
+                        <span class="text-slate-300 hidden sm:inline">|</span>
+                        <span id="realtime-date" class="text-[11px] text-slate-500 hidden sm:inline">Loading...</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="flex items-center gap-4">
-                <!-- Global Quick Search Box -->
-                <div class="relative hidden sm:block">
-                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-                    <input type="text" id="global-quick-search" oninput="handleGlobalSearch(this.value)" placeholder="Cari cepat nama member..." class="bg-slate-100 border border-slate-200 rounded-full pl-9 pr-4 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-teal-600 focus:bg-white w-56 transition">
-                </div>
-
-                <!-- Realtime Clock Widget -->
-                <div class="flex items-center gap-2.5 bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full font-mono text-xs">
-                    <i data-lucide="clock" class="w-4 h-4 text-teal-600"></i>
-                    <span id="realtime-clock" class="font-bold text-slate-800 tracking-wider">00:00:00 WIB</span>
-                    <span class="text-slate-300">|</span>
-                    <span id="realtime-date" class="text-[11px] text-slate-500">Loading...</span>
-                </div>
+            <!-- Mobile Quick Search Bar (Visible on Phone & Tablet) -->
+            <div class="relative lg:hidden">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input type="text" id="mobile-quick-search" oninput="handleGlobalSearch(this.value)" placeholder="Cari cepat nama member atau trainer..." class="w-full bg-slate-100 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-base md:text-xs text-slate-700 focus:outline-none focus:border-teal-600 focus:bg-white transition">
             </div>
         </header>
 
         <!-- Main Body Workspace -->
-        <main class="p-6 space-y-6 flex-1 overflow-x-hidden">
+        <main class="p-4 sm:p-6 space-y-5 sm:space-y-6 flex-1 overflow-x-hidden">
 
             <!-- VIEW 1: DASHBOARD MONITORING BERJALAN -->
-            <div id="view-dashboard" class="space-y-6">
-                <!-- KPI Metric Cards (Overview Grid) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition">
+            <div id="view-dashboard" class="space-y-5 sm:space-y-6">
+                <!-- KPI Metric Cards (2 Columns on Phone, 4 Columns on Desktop) -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-sm">
                         <div>
-                            <p class="text-xs font-semibold text-slate-500">Total Member Active</p>
-                            <p id="dash-total-active" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+                            <p class="text-[11px] sm:text-xs font-semibold text-slate-500">Member Active</p>
+                            <p id="dash-total-active" class="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5 sm:mt-1">0</p>
                         </div>
-                        <div class="p-3.5 bg-teal-50 text-teal-600 rounded-2xl"><i data-lucide="users" class="w-6 h-6"></i></div>
+                        <div class="p-2.5 sm:p-3.5 bg-teal-50 text-teal-600 rounded-xl sm:rounded-2xl"><i data-lucide="users" class="w-5 h-5 sm:w-6 sm:h-6"></i></div>
                     </div>
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-sm">
                         <div>
-                            <p class="text-xs font-semibold text-slate-500">Total Trainer Active</p>
-                            <p id="dash-total-trainers" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+                            <p class="text-[11px] sm:text-xs font-semibold text-slate-500">Trainer Active</p>
+                            <p id="dash-total-trainers" class="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5 sm:mt-1">0</p>
                         </div>
-                        <div class="p-3.5 bg-blue-50 text-blue-600 rounded-2xl"><i data-lucide="user-check" class="w-6 h-6"></i></div>
+                        <div class="p-2.5 sm:p-3.5 bg-blue-50 text-blue-600 rounded-xl sm:rounded-2xl"><i data-lucide="user-check" class="w-5 h-5 sm:w-6 sm:h-6"></i></div>
                     </div>
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-sm">
                         <div>
-                            <p class="text-xs font-semibold text-slate-500">Sesi Segera Habis (&le; <span id="kpi-threshold-label">3</span>)</p>
-                            <p id="dash-warning-clients" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+                            <p class="text-[11px] sm:text-xs font-semibold text-slate-500">Sisa &le; <span id="kpi-threshold-label">3</span> Sesi</p>
+                            <p id="dash-warning-clients" class="text-xl sm:text-2xl font-bold text-amber-600 mt-0.5 sm:mt-1">0</p>
                         </div>
-                        <div class="p-3.5 bg-amber-50 text-amber-600 rounded-2xl"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+                        <div class="p-2.5 sm:p-3.5 bg-amber-50 text-amber-600 rounded-xl sm:rounded-2xl"><i data-lucide="alert-triangle" class="w-5 h-5 sm:w-6 sm:h-6"></i></div>
                     </div>
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-sm">
                         <div>
-                            <p class="text-xs font-semibold text-slate-500">Member Sesi Habis (0)</p>
-                            <p id="dash-inactive-clients" class="text-2xl font-bold text-rose-600 mt-1">0</p>
+                            <p class="text-[11px] sm:text-xs font-semibold text-slate-500">Sesi Habis (0)</p>
+                            <p id="dash-inactive-clients" class="text-xl sm:text-2xl font-bold text-rose-600 mt-0.5 sm:mt-1">0</p>
                         </div>
-                        <div class="p-3.5 bg-rose-50 text-rose-600 rounded-2xl"><i data-lucide="user-x" class="w-6 h-6"></i></div>
+                        <div class="p-2.5 sm:p-3.5 bg-rose-50 text-rose-600 rounded-xl sm:rounded-2xl"><i data-lucide="user-x" class="w-5 h-5 sm:w-6 sm:h-6"></i></div>
                     </div>
                 </div>
 
                 <!-- Visual Charts Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 lg:col-span-2 space-y-3 shadow-sm">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 lg:col-span-2 space-y-3 shadow-sm">
                         <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
                             <i data-lucide="bar-chart-3" class="text-teal-600 w-4 h-4"></i> Distribusi Member per Trainer
                         </h3>
-                        <div class="h-72 relative"><canvas id="chart-trainer-dist"></canvas></div>
+                        <div class="h-64 sm:h-72 relative"><canvas id="chart-trainer-dist"></canvas></div>
                     </div>
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3 shadow-sm">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
                         <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
                             <i data-lucide="pie-chart" class="text-teal-600 w-4 h-4"></i> Status Sesi Member
                         </h3>
-                        <div class="h-72 relative flex items-center justify-center"><canvas id="chart-session-status"></canvas></div>
+                        <div class="h-64 sm:h-72 relative flex items-center justify-center"><canvas id="chart-session-status"></canvas></div>
                     </div>
                 </div>
 
                 <!-- KELOMPOK PENGAWASAN SISA SESI MEMBER (<10, 5, 3 SESI) -->
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-5 shadow-sm">
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 space-y-5 shadow-sm">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
-                            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                                <i data-lucide="layers" class="w-5 h-5 text-teal-600"></i> Pengelompokan Monitoring Sisa Sesi Member
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="layers" class="w-5 h-5 text-teal-600 flex-shrink-0"></i> Pengelompokan Sisa Sesi Member
                             </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Pemantauan bertingkat member berdasarkan sisa paket sesi (6-10 Sesi, 4-5 Sesi, & 1-3 Sesi).</p>
+                            <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Pemantauan bertingkat berdasarkan sisa paket sesi (6-10, 4-5, & 1-3 Sesi).</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
                         <!-- Kelompok 1: Sisa 6 - 10 Sesi -->
-                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 sm:p-4 space-y-3 flex flex-col justify-between">
                             <div class="space-y-3">
                                 <div class="flex justify-between items-center border-b border-slate-200 pb-2">
                                     <h4 class="text-xs font-bold text-teal-700 flex items-center gap-1.5">
@@ -262,8 +303,8 @@
                                     </h4>
                                     <span id="badge-count-10" class="bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 Member</span>
                                 </div>
-                                <div class="overflow-y-auto max-h-72 rounded-xl border border-slate-200 bg-white">
-                                    <table class="w-full text-left text-xs text-slate-700">
+                                <div class="overflow-x-auto overflow-y-auto max-h-72 rounded-xl border border-slate-200 bg-white scroll-touch">
+                                    <table class="w-full min-w-[300px] text-left text-xs text-slate-700">
                                         <thead class="bg-slate-100 text-slate-500 uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-slate-200">
                                             <tr>
                                                 <th class="p-2.5">Member</th>
@@ -276,13 +317,13 @@
                                     </table>
                                 </div>
                             </div>
-                            <button onclick="exportCustomSessionGroup(6, 10)" class="w-full py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition border border-teal-200">
+                            <button onclick="exportCustomSessionGroup(6, 10)" class="w-full py-2.5 bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition border border-teal-200">
                                 <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export Excel (Sisa 6-10)
                             </button>
                         </div>
 
                         <!-- Kelompok 2: Sisa 4 - 5 Sesi -->
-                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 sm:p-4 space-y-3 flex flex-col justify-between">
                             <div class="space-y-3">
                                 <div class="flex justify-between items-center border-b border-slate-200 pb-2">
                                     <h4 class="text-xs font-bold text-amber-700 flex items-center gap-1.5">
@@ -290,8 +331,8 @@
                                     </h4>
                                     <span id="badge-count-5" class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 Member</span>
                                 </div>
-                                <div class="overflow-y-auto max-h-72 rounded-xl border border-slate-200 bg-white">
-                                    <table class="w-full text-left text-xs text-slate-700">
+                                <div class="overflow-x-auto overflow-y-auto max-h-72 rounded-xl border border-slate-200 bg-white scroll-touch">
+                                    <table class="w-full min-w-[300px] text-left text-xs text-slate-700">
                                         <thead class="bg-slate-100 text-slate-500 uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-slate-200">
                                             <tr>
                                                 <th class="p-2.5">Member</th>
@@ -304,13 +345,13 @@
                                     </table>
                                 </div>
                             </div>
-                            <button onclick="exportCustomSessionGroup(4, 5)" class="w-full py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition border border-amber-200">
+                            <button onclick="exportCustomSessionGroup(4, 5)" class="w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition border border-amber-200">
                                 <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export Excel (Sisa 4-5)
                             </button>
                         </div>
 
                         <!-- Kelompok 3: Sisa 1 - 3 Sesi -->
-                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 sm:p-4 space-y-3 flex flex-col justify-between">
                             <div class="space-y-3">
                                 <div class="flex justify-between items-center border-b border-slate-200 pb-2">
                                     <h4 class="text-xs font-bold text-rose-700 flex items-center gap-1.5">
@@ -318,8 +359,8 @@
                                     </h4>
                                     <span id="badge-count-3" class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 Member</span>
                                 </div>
-                                <div class="overflow-y-auto max-h-72 rounded-xl border border-slate-200 bg-white">
-                                    <table class="w-full text-left text-xs text-slate-700">
+                                <div class="overflow-x-auto overflow-y-auto max-h-72 rounded-xl border border-slate-200 bg-white scroll-touch">
+                                    <table class="w-full min-w-[300px] text-left text-xs text-slate-700">
                                         <thead class="bg-slate-100 text-slate-500 uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-slate-200">
                                             <tr>
                                                 <th class="p-2.5">Member</th>
@@ -332,7 +373,7 @@
                                     </table>
                                 </div>
                             </div>
-                            <button onclick="exportCustomSessionGroup(1, 3)" class="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition border border-rose-200">
+                            <button onclick="exportCustomSessionGroup(1, 3)" class="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition border border-rose-200">
                                 <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export Excel (Sisa 1-3)
                             </button>
                         </div>
@@ -340,22 +381,22 @@
                 </div>
 
                 <!-- TABEL RINGKASAN KHUSUS DUA KATEGORI -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Tabel Client Sesi Segera Habis (Sisa 1-3) -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3 shadow-sm">
-                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                            <h3 class="text-sm font-bold text-amber-700 flex items-center gap-2">
-                                <i data-lucide="alert-triangle" class="w-4 h-4"></i> Ringkasan Sesi Segera Habis (Sisa 1-3)
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
+                    <!-- Tabel Client Sesi Segera Habis -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
+                        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-2.5">
+                            <h3 class="text-xs sm:text-sm font-bold text-amber-700 flex items-center gap-1.5">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 flex-shrink-0"></i> Sesi Segera Habis (Sisa 1-3)
                             </h3>
                             <div class="flex items-center gap-2">
                                 <span id="dash-warning-count-badge" class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 Member</span>
-                                <button onclick="exportSpecificCategory('WARNING')" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold rounded-lg border border-amber-200 flex items-center gap-1 transition">
+                                <button onclick="exportSpecificCategory('WARNING')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-bold rounded-lg border border-amber-200 flex items-center gap-1 transition">
                                     <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export
                                 </button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto max-h-96 rounded-xl border border-slate-200">
-                            <table class="w-full text-left text-xs text-slate-700">
+                        <div class="overflow-x-auto max-h-96 rounded-xl border border-slate-200 scroll-touch">
+                            <table class="w-full min-w-[360px] text-left text-xs text-slate-700">
                                 <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-200 z-10">
                                     <tr>
                                         <th class="p-3">Client & Paket</th>
@@ -370,20 +411,20 @@
                     </div>
 
                     <!-- Tabel Client Sesi Sudah Habis (Sisa 0) -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3 shadow-sm">
-                        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                            <h3 class="text-sm font-bold text-rose-700 flex items-center gap-2">
-                                <i data-lucide="user-x" class="w-4 h-4"></i> Sesi Sudah Habis (Sisa 0)
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
+                        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-100 pb-2.5">
+                            <h3 class="text-xs sm:text-sm font-bold text-rose-700 flex items-center gap-1.5">
+                                <i data-lucide="user-x" class="w-4 h-4 flex-shrink-0"></i> Sesi Sudah Habis (Sisa 0)
                             </h3>
                             <div class="flex items-center gap-2">
                                 <span id="dash-inactive-count-badge" class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">0 Member</span>
-                                <button onclick="exportSpecificCategory('EXPIRED')" class="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold rounded-lg border border-rose-200 flex items-center gap-1 transition">
+                                <button onclick="exportSpecificCategory('EXPIRED')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold rounded-lg border border-rose-200 flex items-center gap-1 transition">
                                     <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export
                                 </button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto max-h-96 rounded-xl border border-slate-200">
-                            <table class="w-full text-left text-xs text-slate-700">
+                        <div class="overflow-x-auto max-h-96 rounded-xl border border-slate-200 scroll-touch">
+                            <table class="w-full min-w-[360px] text-left text-xs text-slate-700">
                                 <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider sticky top-0 border-b border-slate-200 z-10">
                                     <tr>
                                         <th class="p-3">Client & Paket</th>
@@ -400,55 +441,58 @@
             </div>
 
             <!-- VIEW 2: MODUL LAPORAN EVALUASI BERJALAN -->
-            <div id="view-evaluation" class="hidden space-y-6">
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-6 shadow-sm">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+            <div id="view-evaluation" class="hidden space-y-5 sm:space-y-6">
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 space-y-5 sm:space-y-6 shadow-sm">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
                         <div>
-                            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <i data-lucide="line-chart" class="text-teal-600"></i> Laporan Evaluasi Berjalan & Performance Trainer
+                            <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="line-chart" class="text-teal-600 w-5 h-5 flex-shrink-0"></i> Laporan Evaluasi & Performance Trainer
                             </h2>
-                            <p class="text-xs text-slate-500 mt-1">Ringkasan analitis rasio penyelesaian sesi, utilisasi paket, dan estimasi beban re-assessment.</p>
+                            <p class="text-xs text-slate-500 mt-1">Ringkasan rasio penyelesaian sesi, utilisasi paket, dan estimasi re-assessment.</p>
                         </div>
-                        <button onclick="exportEvaluationSummary()" class="px-4 py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition shadow-md shadow-teal-700/20">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Download Laporan Ringkasan Evaluasi
+                        <button onclick="exportEvaluationSummary()" class="w-full sm:w-auto px-4 py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition shadow-md shadow-teal-700/20">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Download Laporan Evaluasi
                         </button>
                     </div>
 
                     <!-- Evaluation Stat Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                        <div class="bg-slate-50 border border-slate-200 p-4 sm:p-5 rounded-2xl">
                             <p class="text-xs font-semibold text-slate-500">Total Keseluruhan Paket Sesi</p>
-                            <p id="eval-total-sessions" class="text-2xl font-bold text-teal-700 mt-1">0 Sesi</p>
+                            <p id="eval-total-sessions" class="text-xl sm:text-2xl font-bold text-teal-700 mt-1">0 Sesi</p>
                             <p class="text-[11px] text-slate-400 mt-1">Total sesi terdaftar di sistem</p>
                         </div>
-                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+                        <div class="bg-slate-50 border border-slate-200 p-4 sm:p-5 rounded-2xl">
                             <p class="text-xs font-semibold text-slate-500">Total Sesi Telah Terpakai</p>
-                            <p id="eval-used-sessions" class="text-2xl font-bold text-emerald-700 mt-1">0 Sesi</p>
+                            <p id="eval-used-sessions" class="text-xl sm:text-2xl font-bold text-emerald-700 mt-1">0 Sesi</p>
                             <p id="eval-utilization-rate" class="text-[11px] text-emerald-600 font-semibold mt-1">Tingkat utilisasi: 0%</p>
                         </div>
-                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+                        <div class="bg-slate-50 border border-slate-200 p-4 sm:p-5 rounded-2xl">
                             <p class="text-xs font-semibold text-slate-500">Peluang Renewal / Assessment</p>
-                            <p id="eval-renewal-target" class="text-2xl font-bold text-amber-700 mt-1">0 Member</p>
+                            <p id="eval-renewal-target" class="text-xl sm:text-2xl font-bold text-amber-700 mt-1">0 Member</p>
                             <p class="text-[11px] text-slate-400 mt-1">Member dengan sisa &le; 3 sesi</p>
                         </div>
                     </div>
 
                     <!-- Table Trainer Evaluation Breakdown -->
                     <div class="space-y-3">
-                        <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                            <i data-lucide="users" class="w-4 h-4 text-teal-600"></i> Evaluasi Distribusi & Beban Sesi Per Trainer
-                        </h3>
-                        <div class="overflow-x-auto rounded-xl border border-slate-200">
-                            <table class="w-full text-left text-xs text-slate-700">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="users" class="w-4 h-4 text-teal-600"></i> Evaluasi Beban Sesi Per Trainer
+                            </h3>
+                            <span class="text-[10px] text-slate-400 md:hidden">Geser tabel &rarr;</span>
+                        </div>
+                        <div class="overflow-x-auto rounded-xl border border-slate-200 scroll-touch">
+                            <table class="w-full min-w-[680px] text-left text-xs text-slate-700">
                                 <thead class="bg-slate-100 text-slate-600 uppercase text-[10px] tracking-wider border-b border-slate-200">
                                     <tr>
-                                        <th class="p-3">Nama Trainer</th>
+                                        <th class="p-3 sticky left-0 bg-slate-100 z-10">Nama Trainer</th>
                                         <th class="p-3 text-center">Total Client</th>
-                                        <th class="p-3 text-center">Client Aktif (>3)</th>
-                                        <th class="p-3 text-center">Segera Habis (1-3)</th>
+                                        <th class="p-3 text-center">Aktif (>3)</th>
+                                        <th class="p-3 text-center">Segera Habis</th>
                                         <th class="p-3 text-center">Habis (0)</th>
-                                        <th class="p-3 text-center">Total Sesi Diampu</th>
-                                        <th class="p-3 text-center">Tingkat Selesai (%)</th>
+                                        <th class="p-3 text-center">Total Sesi</th>
+                                        <th class="p-3 text-center">Selesai (%)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="eval-trainer-table-body" class="divide-y divide-slate-100"></tbody>
@@ -459,45 +503,45 @@
             </div>
 
             <!-- VIEW 3: CLIENT DATA & LOG MANAGEMENT -->
-            <div id="view-clients" class="hidden space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div id="view-clients" class="hidden space-y-5 sm:space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 sm:gap-8">
                     
                     <!-- Upload / Input Schedule Section -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 lg:col-span-1 space-y-6 shadow-sm">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 lg:col-span-1 space-y-5 sm:space-y-6 shadow-sm">
                         <div>
-                            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <i data-lucide="upload-cloud" class="text-teal-600"></i> Log Sesi Harian
+                            <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="upload-cloud" class="text-teal-600 w-5 h-5"></i> Log Sesi Harian
                             </h2>
-                            <p class="text-xs text-slate-500 mt-1">Upload screenshot jadwal, file Excel, atau input sesi secara langsung.</p>
+                            <p class="text-xs text-slate-500 mt-1">Scan screenshot jadwal atau potong sesi manual.</p>
                         </div>
 
                         <!-- OCR Foto Schedule Section -->
-                        <div class="pt-2 border-t border-slate-100 space-y-3">
+                        <div class="pt-3 border-t border-slate-100 space-y-3">
                             <div class="flex justify-between items-center">
                                 <p class="text-xs font-bold text-teal-700 uppercase tracking-wider flex items-center gap-1.5">
-                                    <i data-lucide="image" class="w-4 h-4"></i> Scan Foto Jadwal (OCR)
+                                    <i data-lucide="image" class="w-4 h-4"></i> Scan Jadwal (OCR)
                                 </p>
-                                <span class="text-[10px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded-md font-mono font-bold">Bumi + Pintu</span>
+                                <span class="text-[10px] bg-teal-100 text-teal-800 px-2 py-0.5 rounded-md font-mono font-bold">Auto Cut</span>
                             </div>
-                            <p class="text-[11px] text-slate-500">Upload screenshot daily roster. Nama member yang terdeteksi di gambar akan dipotong sesinya otomatis.</p>
-                            <input type="file" id="ocr-photo-input" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-slate-100 file:text-teal-700 hover:file:bg-slate-200 font-medium">
-                            <button id="btn-scan-ocr" onclick="processScheduleOCR()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md shadow-teal-700/20">
+                            <p class="text-[11px] text-slate-500">Upload screenshot daily roster dari HP untuk potong sesi otomatis.</p>
+                            <input type="file" id="ocr-photo-input" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-slate-100 file:text-teal-700 hover:file:bg-slate-200 font-medium">
+                            <button id="btn-scan-ocr" onclick="processScheduleOCR()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md shadow-teal-700/20">
                                 <i data-lucide="scan" class="w-4 h-4"></i> <span id="ocr-btn-label">Scan Foto & Potong Sesi</span>
                             </button>
                         </div>
 
                         <!-- Manual Single Session Record -->
-                        <form id="session-form" onsubmit="handleSingleSession(event)" class="space-y-4 pt-4 border-t border-slate-100">
+                        <form id="session-form" onsubmit="handleSingleSession(event)" class="space-y-3.5 pt-4 border-t border-slate-100">
                             <p class="text-xs font-bold text-teal-700 uppercase tracking-wider">Input Sesi Manual</p>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Pilih Member</label>
-                                <select id="select-client" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition"></select>
+                                <select id="select-client" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition"></select>
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan Latihan</label>
-                                <input type="text" id="session-note" placeholder="Contoh: Leg Day / PT Smart" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                                <input type="text" id="session-note" placeholder="Contoh: Leg Day / PT Smart" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
                             </div>
-                            <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2">
                                 <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Potong 1 Sesi Otomatis
                             </button>
                         </form>
@@ -506,11 +550,11 @@
                         <div class="pt-4 border-t border-slate-100 space-y-3">
                             <div class="flex items-center justify-between">
                                 <p class="text-xs font-bold text-teal-700 uppercase tracking-wider flex items-center gap-1.5">
-                                    <i data-lucide="history" class="w-4 h-4"></i> Histori Sesi Terinput
+                                    <i data-lucide="history" class="w-4 h-4"></i> Histori Sesi
                                 </p>
                                 <div class="flex items-center gap-1.5">
                                     <span id="log-count-badge" class="bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-0.5 rounded-full">0 Sesi</span>
-                                    <button onclick="exportSessionLogsExcel()" title="Export Histori Sesi ke Excel" class="p-1 bg-slate-100 hover:bg-teal-100 text-teal-700 rounded-lg transition">
+                                    <button onclick="exportSessionLogsExcel()" title="Export Histori Sesi ke Excel" class="p-1.5 bg-slate-100 hover:bg-teal-100 text-teal-700 rounded-lg transition">
                                         <i data-lucide="download" class="w-3.5 h-3.5"></i>
                                     </button>
                                 </div>
@@ -518,13 +562,13 @@
                             
                             <!-- Filter Tabs: Daily, Weekly, Monthly -->
                             <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-[11px]">
-                                <button id="btn-log-daily" onclick="switchLogPeriod('daily')" class="py-1 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition">Hari Ini</button>
-                                <button id="btn-log-weekly" onclick="switchLogPeriod('weekly')" class="py-1 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition">Minggu Ini</button>
-                                <button id="btn-log-monthly" onclick="switchLogPeriod('monthly')" class="py-1 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition">Bulan Ini</button>
+                                <button id="btn-log-daily" onclick="switchLogPeriod('daily')" class="py-1.5 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition">Hari Ini</button>
+                                <button id="btn-log-weekly" onclick="switchLogPeriod('weekly')" class="py-1.5 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition">Minggu Ini</button>
+                                <button id="btn-log-monthly" onclick="switchLogPeriod('monthly')" class="py-1.5 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition">Bulan Ini</button>
                             </div>
 
                             <!-- Table Log Record -->
-                            <div class="overflow-y-auto max-h-60 rounded-xl border border-slate-200 bg-white">
+                            <div class="overflow-y-auto max-h-60 rounded-xl border border-slate-200 bg-white scroll-touch">
                                 <table class="w-full text-left text-[11px] text-slate-700">
                                     <thead class="bg-slate-100 text-slate-500 uppercase text-[9px] tracking-wider sticky top-0 z-10 border-b border-slate-200">
                                         <tr>
@@ -536,39 +580,39 @@
                                     <tbody id="session-logs-tbody" class="divide-y divide-slate-100"></tbody>
                                 </table>
                             </div>
-                            <button onclick="clearSessionLogs()" class="w-full py-1 text-[10px] text-slate-400 hover:text-rose-600 transition text-center font-medium">Hapus Histori Log</button>
+                            <button onclick="clearSessionLogs()" class="w-full py-1.5 text-[11px] text-slate-400 hover:text-rose-600 transition text-center font-medium">Hapus Histori Log</button>
                         </div>
                     </div>
 
                     <!-- Client Table Section -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 lg:col-span-3 space-y-6 shadow-sm">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 lg:col-span-3 space-y-5 shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                             <div>
-                                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                    <i data-lucide="users" class="text-teal-600"></i> Kelola Data Client & Sesi
+                                <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <i data-lucide="users" class="text-teal-600 w-5 h-5"></i> Kelola Data Client & Sesi
                                 </h2>
-                                <p class="text-xs text-slate-500 mt-1">Ubah nilai sesi secara manual atau filter data sesuai status sesi berjalan.</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Ubah nilai sesi atau filter data sesuai status berjalan.</p>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button id="btn-bulk-delete" onclick="deleteSelectedClients()" class="hidden px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-md shadow-rose-600/20">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Terpilih (<span id="selected-count">0</span>)
+                            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                                <button id="btn-bulk-delete" onclick="deleteSelectedClients()" class="hidden flex-1 sm:flex-none px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-md shadow-rose-600/20">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus (<span id="selected-count">0</span>)
                                 </button>
-                                <button onclick="exportFilteredClients()" class="px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
-                                    <i data-lucide="download" class="w-4 h-4"></i> Export Data
+                                <button onclick="exportFilteredClients()" class="flex-1 sm:flex-none px-3.5 py-2.5 sm:py-2 bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition">
+                                    <i data-lucide="download" class="w-4 h-4"></i> Export
                                 </button>
-                                <button onclick="openAddClientModal()" class="px-3.5 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition shadow-md shadow-teal-700/20">
-                                    <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah / Import Excel
+                                <button onclick="openAddClientModal()" class="flex-1 sm:flex-none px-3.5 py-2.5 sm:py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition shadow-md shadow-teal-700/20">
+                                    <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah / Import
                                 </button>
                             </div>
                         </div>
 
                         <!-- Search & Filter Berjalan -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <input type="text" id="search-input" oninput="syncSearchInputs(this.value)" placeholder="Cari Nama Member..." class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
-                            <select id="filter-trainer" onchange="renderClients()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                            <input type="text" id="search-input" oninput="syncSearchInputs(this.value)" placeholder="Cari Nama Member..." class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 sm:py-2 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                            <select id="filter-trainer" onchange="renderClients()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 sm:py-2 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
                                 <option value="ALL">Semua Trainer</option>
                             </select>
-                            <select id="filter-status" onchange="renderClients()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
+                            <select id="filter-status" onchange="renderClients()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 sm:py-2 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white transition">
                                 <option value="ALL">Semua Status Sesi</option>
                                 <option value="ACTIVE">Aktif (&gt; 3 Sesi)</option>
                                 <option value="WARNING">Segera Habis (1 - 3 Sesi)</option>
@@ -576,19 +620,23 @@
                             </select>
                         </div>
 
-                        <!-- Table -->
-                        <div class="overflow-x-auto rounded-xl border border-slate-200">
-                            <table class="w-full text-left text-xs text-slate-700">
+                        <div class="flex justify-end md:hidden">
+                            <span class="text-[10px] text-slate-400">Geser tabel ke samping untuk edit sesi &rarr;</span>
+                        </div>
+
+                        <!-- Table with Sticky Client Column -->
+                        <div class="overflow-x-auto rounded-xl border border-slate-200 scroll-touch">
+                            <table class="w-full min-w-[760px] text-left text-xs text-slate-700">
                                 <thead class="bg-slate-100 text-slate-600 uppercase text-[10px] tracking-wider border-b border-slate-200">
                                     <tr>
-                                        <th class="p-3.5 w-8"><input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" class="rounded border-slate-300 text-teal-600 focus:ring-teal-500"></th>
-                                        <th class="p-3.5">Client & Paket</th>
-                                        <th class="p-3.5">Trainer</th>
-                                        <th class="p-3.5 text-center">Total Sesi</th>
-                                        <th class="p-3.5 text-center">Terpakai</th>
-                                        <th class="p-3.5 text-center">Sisa Sesi</th>
-                                        <th class="p-3.5 text-center">Status</th>
-                                        <th class="p-3.5 text-center">Aksi</th>
+                                        <th class="p-3 w-8"><input type="checkbox" id="select-all-checkbox" onchange="toggleSelectAll(this)" class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"></th>
+                                        <th class="p-3 sticky left-0 bg-slate-100 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">Client & Paket</th>
+                                        <th class="p-3">Trainer</th>
+                                        <th class="p-3 text-center">Total</th>
+                                        <th class="p-3 text-center">Terpakai</th>
+                                        <th class="p-3 text-center">Sisa</th>
+                                        <th class="p-3 text-center">Status</th>
+                                        <th class="p-3 text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="client-table-body" class="divide-y divide-slate-100"></tbody>
@@ -596,22 +644,22 @@
                         </div>
 
                         <!-- Pagination Controls -->
-                        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500 pt-2">
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500 pt-2">
                             <div class="flex items-center gap-2">
                                 <span>Tampilkan</span>
-                                <select id="page-size" onchange="changePageSize(this.value)" class="bg-slate-50 border border-slate-300 rounded-lg px-2 py-1 text-slate-800 focus:outline-none">
+                                <select id="page-size" onchange="changePageSize(this.value)" class="bg-slate-50 border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800 focus:outline-none">
                                     <option value="10">10</option>
                                     <option value="25" selected>25</option>
                                     <option value="50">50</option>
                                     <option value="100">100</option>
                                 </select>
-                                <span>data per halaman</span>
+                                <span>per halaman</span>
                             </div>
-                            <div id="pagination-info" class="font-semibold text-slate-700">Menampilkan 0 - 0 dari 0 Member</div>
-                            <div class="flex items-center gap-1">
-                                <button id="btn-prev-page" onclick="changePage(-1)" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 rounded-lg text-slate-700 font-bold disabled:opacity-40 disabled:cursor-not-allowed">Previous</button>
+                            <div id="pagination-info" class="font-semibold text-slate-700 text-center">Menampilkan 0 - 0 dari 0 Member</div>
+                            <div class="flex items-center gap-1.5">
+                                <button id="btn-prev-page" onclick="changePage(-1)" class="px-3.5 py-2 sm:py-1.5 bg-slate-200 hover:bg-slate-300 rounded-lg text-slate-700 font-bold disabled:opacity-40 disabled:cursor-not-allowed">Prev</button>
                                 <span id="page-number-display" class="px-3 py-1 font-bold text-teal-700">1 / 1</span>
-                                <button id="btn-next-page" onclick="changePage(1)" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 rounded-lg text-slate-700 font-bold disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+                                <button id="btn-next-page" onclick="changePage(1)" class="px-3.5 py-2 sm:py-1.5 bg-slate-200 hover:bg-slate-300 rounded-lg text-slate-700 font-bold disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
                             </div>
                         </div>
 
@@ -620,11 +668,11 @@
             </div>
 
             <!-- VIEW 4: MENU PENGATURAN (PROFIL, TRAINER & SISTEM) -->
-            <div id="view-settings" class="hidden space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div id="view-settings" class="hidden space-y-5 sm:space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
                     
                     <!-- Kolom 1: Pengaturan Profil Manager & Cabang -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-5 shadow-sm">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 space-y-5 shadow-sm">
                         <div class="border-b border-slate-100 pb-3">
                             <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                                 <i data-lucide="user-cog" class="w-5 h-5 text-teal-600"></i> Profil Pengguna & Cabang
@@ -635,40 +683,40 @@
                         <!-- Avatar Preview & Upload -->
                         <div class="flex items-center gap-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
                             <img id="settings-avatar-preview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Preview" class="w-16 h-16 rounded-full object-cover border-2 border-teal-600 flex-shrink-0">
-                            <div class="space-y-1.5 flex-1">
-                                <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-700 hover:bg-teal-800 text-white text-[11px] font-bold rounded-xl cursor-pointer transition">
+                            <div class="space-y-2 flex-1">
+                                <label class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl cursor-pointer transition">
                                     <i data-lucide="camera" class="w-3.5 h-3.5"></i> Ganti Foto Profil
                                     <input type="file" id="settings-avatar-file" accept="image/*" onchange="handleAvatarUpload(event)" class="hidden">
                                 </label>
-                                <button type="button" onclick="resetDefaultAvatar()" class="block text-[10px] text-slate-500 hover:text-rose-600 font-medium">Gunakan Foto Bawaan</button>
+                                <button type="button" onclick="resetDefaultAvatar()" class="block text-[11px] text-slate-500 hover:text-rose-600 font-medium">Gunakan Foto Bawaan</button>
                             </div>
                         </div>
 
                         <form id="settings-profile-form" onsubmit="saveUserProfileSettings(event)" class="space-y-3.5">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Tampilan</label>
-                                <input type="text" id="set-display-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
+                                <input type="text" id="set-display-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Jabatan / Role Label</label>
-                                <input type="text" id="set-role-title" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
+                                <input type="text" id="set-role-title" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Email Akun Resmi</label>
-                                <input type="email" id="set-email" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
+                                <input type="email" id="set-email" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Cabang / Club</label>
-                                <input type="text" id="set-branch-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
+                                <input type="text" id="set-branch-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
                             </div>
-                            <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md shadow-teal-700/20">
+                            <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md shadow-teal-700/20">
                                 <i data-lucide="save" class="w-4 h-4"></i> Simpan Profil
                             </button>
                         </form>
                     </div>
 
                     <!-- Kolom 2: Manajemen Daftar Personal Trainer -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-5 shadow-sm flex flex-col justify-between">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 space-y-5 shadow-sm flex flex-col justify-between">
                         <div class="space-y-4">
                             <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
                                 <div>
@@ -682,8 +730,8 @@
 
                             <!-- Input Tambah Trainer -->
                             <div class="flex gap-2">
-                                <input type="text" id="new-trainer-name" placeholder="Nama lengkap trainer baru..." class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
-                                <button type="button" onclick="addNewTrainer()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl flex items-center gap-1 transition">
+                                <input type="text" id="new-trainer-name" placeholder="Nama lengkap trainer baru..." class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
+                                <button type="button" onclick="addNewTrainer()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl flex items-center gap-1 transition">
                                     <i data-lucide="plus" class="w-4 h-4"></i> Tambah
                                 </button>
                             </div>
@@ -692,13 +740,13 @@
                             <div id="settings-trainer-list" class="overflow-y-auto max-h-72 divide-y divide-slate-100 border border-slate-200 rounded-xl bg-slate-50/50"></div>
                         </div>
 
-                        <button type="button" onclick="resetDefaultTrainers()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
-                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset ke 11 Trainer Default Depok Lama
+                        <button type="button" onclick="resetDefaultTrainers()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset ke 11 Trainer Default
                         </button>
                     </div>
 
                     <!-- Kolom 3: Konfigurasi Notifikasi WA, Ambang Batas & Restore -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-5 shadow-sm">
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-6 space-y-5 shadow-sm">
                         <div class="border-b border-slate-100 pb-3">
                             <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
                                 <i data-lucide="sliders" class="w-5 h-5 text-teal-600"></i> Sistem & Pemeliharaan Data
@@ -709,17 +757,17 @@
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Ambang Batas Peringatan Sesi (&le; Sesi)</label>
-                                <input type="number" id="set-warning-threshold" min="1" max="15" value="3" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
+                                <input type="number" id="set-warning-threshold" min="1" max="15" value="3" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                                 <p class="text-[10px] text-slate-400 mt-1">Member dengan sisa sesi di bawah atau sama dengan angka ini masuk kategori Segera Habis.</p>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Template Pesan WA Reminder Trainer</label>
-                                <textarea id="set-wa-template" rows="4" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-[11px] text-slate-800 focus:outline-none focus:border-teal-600 font-mono"></textarea>
-                                <p class="text-[10px] text-slate-400 mt-1">Gunakan variabel: <code>{trainer}</code>, <code>{member}</code>, <code>{paket}</code>, <code>{sisa}</code>, <code>{cabang}</code></p>
+                                <textarea id="set-wa-template" rows="4" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm md:text-[11px] text-slate-800 focus:outline-none focus:border-teal-600 font-mono"></textarea>
+                                <p class="text-[10px] text-slate-400 mt-1">Variabel: <code>{trainer}</code>, <code>{member}</code>, <code>{paket}</code>, <code>{sisa}</code>, <code>{cabang}</code></p>
                             </div>
 
-                            <button type="button" onclick="saveSystemPreferences()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            <button type="button" onclick="saveSystemPreferences()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl text-xs transition flex items-center justify-center gap-2">
                                 <i data-lucide="check" class="w-4 h-4"></i> Terapkan Pengaturan Sistem
                             </button>
                         </div>
@@ -730,7 +778,7 @@
                                 <i data-lucide="upload" class="w-4 h-4 text-amber-600"></i> Restore Database dari Backup JSON
                             </p>
                             <p class="text-[11px] text-slate-500">Pulihkan seluruh daftar member & sisa sesi menggunakan file <code>.json</code> hasil backup.</p>
-                            <label class="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition">
+                            <label class="w-full py-2.5 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition">
                                 <i data-lucide="file-up" class="w-4 h-4"></i> Pilih File Backup (.json)
                                 <input type="file" accept=".json" onchange="handleRestoreJSON(event)" class="hidden">
                             </label>
@@ -743,42 +791,64 @@
         </main>
     </div>
 
+    <!-- MOBILE BOTTOM NAVIGATION BAR (KHUSUS LAYAR HP ANDROID & IPHONE) -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-40 pb-safe shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
+        <div class="grid grid-cols-4 h-16">
+            <button id="mob-nav-dashboard" onclick="switchView('dashboard')" class="flex flex-col items-center justify-center gap-1 text-teal-700 font-bold text-[10px] transition">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Monitoring</span>
+            </button>
+            <button id="mob-nav-evaluation" onclick="switchView('evaluation')" class="flex flex-col items-center justify-center gap-1 text-slate-400 font-medium text-[10px] transition">
+                <i data-lucide="line-chart" class="w-5 h-5"></i>
+                <span>Evaluasi</span>
+            </button>
+            <button id="mob-nav-clients" onclick="switchView('clients')" class="flex flex-col items-center justify-center gap-1 text-slate-400 font-medium text-[10px] transition">
+                <i data-lucide="users" class="w-5 h-5"></i>
+                <span>Client & Log</span>
+            </button>
+            <button id="mob-nav-settings" onclick="switchView('settings')" class="flex flex-col items-center justify-center gap-1 text-slate-400 font-medium text-[10px] transition">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span>Pengaturan</span>
+            </button>
+        </div>
+    </nav>
+
     <!-- Modal Edit Member Detail -->
     <div id="edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 w-full max-w-md space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
                     <i data-lucide="edit-3" class="text-teal-600 w-5 h-5"></i> Edit Detail Member
                 </h3>
-                <button onclick="closeEditClientModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="closeEditClientModal()" class="p-1 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <form id="edit-member-form" onsubmit="handleSaveEditClient(event)" class="space-y-3">
                 <input type="hidden" id="edit-client-id">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Member</label>
-                    <input type="text" id="edit-client-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
+                    <input type="text" id="edit-client-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis Paket / Kode Paket</label>
-                    <input type="text" id="edit-client-package" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
+                    <input type="text" id="edit-client-package" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Trainer</label>
-                    <select id="edit-client-trainer" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600"></select>
+                    <select id="edit-client-trainer" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600"></select>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Total Paket Sesi</label>
-                        <input type="number" id="edit-client-total" required min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
+                        <input type="number" id="edit-client-total" required min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Sesi Terpakai</label>
-                        <input type="number" id="edit-client-used" required min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-amber-700 focus:outline-none focus:border-teal-600">
+                        <input type="number" id="edit-client-used" required min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs font-bold text-amber-700 focus:outline-none focus:border-teal-600">
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeEditClientModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-300">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-teal-700 text-white font-bold text-xs rounded-xl hover:bg-teal-800">Simpan Perubahan</button>
+                    <button type="button" onclick="closeEditClientModal()" class="px-4 py-2.5 bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-300">Batal</button>
+                    <button type="submit" class="px-4 py-2.5 bg-teal-700 text-white font-bold text-xs rounded-xl hover:bg-teal-800">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -786,56 +856,56 @@
 
     <!-- Modal Add Single / Import Excel Member -->
     <div id="add-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-2xl">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 w-full max-w-lg space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
                     <i data-lucide="user-plus" class="text-teal-600 w-5 h-5"></i> Tambah / Import Member
                 </h3>
-                <button onclick="closeAddClientModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <button onclick="closeAddClientModal()" class="p-1 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
             <div class="flex border-b border-slate-200 text-xs font-semibold">
                 <button id="tab-btn-single" onclick="switchAddTab('single')" class="px-4 py-2.5 text-teal-700 border-b-2 border-teal-600 focus:outline-none font-bold">Tambah Satu Member</button>
-                <button id="tab-btn-excel" onclick="switchAddTab('excel')" class="px-4 py-2.5 text-slate-500 border-b-2 border-transparent hover:text-slate-900 focus:outline-none">Import Banyak via Excel</button>
+                <button id="tab-btn-excel" onclick="switchAddTab('excel')" class="px-4 py-2.5 text-slate-500 border-b-2 border-transparent hover:text-slate-900 focus:outline-none">Import Excel</button>
             </div>
 
             <form id="add-single-form" onsubmit="handleAddSingleClient(event)" class="space-y-3 py-1">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Member</label>
-                    <input type="text" id="add-single-name" placeholder="Contoh: ARIESKA KURNIAWATY" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
+                    <input type="text" id="add-single-name" placeholder="Contoh: ARIESKA KURNIAWATY" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis Paket</label>
-                    <input type="text" id="add-single-package" placeholder="Contoh: 35 / PT Smart" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
+                    <input type="text" id="add-single-package" placeholder="Contoh: 35 / PT Smart" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Trainer</label>
-                    <select id="add-single-trainer" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600"></select>
+                    <select id="add-single-trainer" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600"></select>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Total Paket Sesi</label>
-                        <input type="number" id="add-single-total" value="35" required min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
+                        <input type="number" id="add-single-total" value="35" required min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs text-slate-900 focus:outline-none focus:border-teal-600">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Sesi Terpakai Awal</label>
-                        <input type="number" id="add-single-used" value="0" required min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-amber-700 focus:outline-none focus:border-teal-600">
+                        <input type="number" id="add-single-used" value="0" required min="0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-base md:text-xs font-bold text-amber-700 focus:outline-none focus:border-teal-600">
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeAddClientModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-teal-700 text-white font-bold text-xs rounded-xl hover:bg-teal-800">Simpan Member</button>
+                    <button type="button" onclick="closeAddClientModal()" class="px-4 py-2.5 bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl">Batal</button>
+                    <button type="submit" class="px-4 py-2.5 bg-teal-700 text-white font-bold text-xs rounded-xl hover:bg-teal-800">Simpan Member</button>
                 </div>
             </form>
 
             <div id="add-excel-section" class="hidden space-y-4 py-2">
                 <p class="text-xs text-slate-600">Unggah file Excel berisi daftar member. Kolom wajib: <b>Nama Client, Trainer, Paket, Sisa Sesi</b>.</p>
                 <input type="file" id="batch-excel-file" accept=".xlsx, .xls" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-slate-100 file:text-teal-700 hover:file:bg-slate-200 font-medium">
-                <div class="flex justify-between items-center pt-2">
+                <div class="flex flex-wrap justify-between items-center gap-2 pt-2">
                     <button onclick="downloadExcelTemplate()" class="text-xs text-teal-700 font-bold hover:underline flex items-center gap-1">
                         <i data-lucide="download" class="w-3.5 h-3.5"></i> Download Template
                     </button>
-                    <button onclick="processBatchExcelUpload()" class="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl transition">Import & Sync Excel</button>
+                    <button onclick="processBatchExcelUpload()" class="px-4 py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl transition">Import & Sync Excel</button>
                 </div>
             </div>
         </div>
@@ -843,20 +913,20 @@
 
     <!-- Modal Firebase Config -->
     <div id="firebase-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 w-full max-w-md space-y-4 shadow-2xl">
             <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
                 <i data-lucide="database" class="text-amber-600 w-5 h-5"></i> Pengaturan Firebase Firestore
             </h3>
             <p class="text-xs text-slate-500">Tempelkan konfigurasi JSON Firebase proyek Anda di bawah ini untuk sinkronisasi cloud real-time.</p>
-            <textarea id="firebase-config-input" rows="6" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "..."}' class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs font-mono text-slate-800 focus:outline-none focus:border-teal-600"></textarea>
+            <textarea id="firebase-config-input" rows="6" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "..."}' class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm md:text-xs font-mono text-slate-800 focus:outline-none focus:border-teal-600"></textarea>
             <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeFirebaseModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl">Batal</button>
-                <button onclick="saveFirebaseConfig()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl">Simpan & Hubungkan</button>
+                <button onclick="closeFirebaseModal()" class="px-4 py-2.5 bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl">Batal</button>
+                <button onclick="saveFirebaseConfig()" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl">Simpan & Hubungkan</button>
             </div>
         </div>
     </div>
 
-    <!-- Script Application Logics (v7.1 + Settings Module) -->
+    <!-- Script Application Logics (v7.2 Mobile-Optimized) -->
     <script>
         const DEFAULT_TRAINERS = [
             "Arini Permata Pahwandi", "Bima Aminullah", "Caraka Vira Satriya",
@@ -895,6 +965,23 @@
         let chartSessionStatusInstance = null;
         let currentUserRole = null;
 
+        // MOBILE DRAWER TOGGLE
+        function toggleMobileSidebar(show) {
+            const sidebar = document.getElementById('main-sidebar');
+            const backdrop = document.getElementById('mobile-sidebar-backdrop');
+            if (!sidebar || !backdrop) return;
+
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        }
+
         // TOAST NOTIFICATION HELPER
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -929,7 +1016,7 @@
             document.getElementById('active-role').innerText = userSettings.roleTitle.toUpperCase();
             document.getElementById('active-email-display').innerText = userSettings.email;
             document.getElementById('header-welcome-title').innerText = `Welcome ${userSettings.displayName} !`;
-            document.getElementById('header-branch-subtitle').innerText = `${userSettings.branchName} - Performance & Session Management`;
+            document.getElementById('header-branch-subtitle').innerText = `${userSettings.branchName} - Performance & Session`;
             document.getElementById('login-branch-subtitle').innerText = `Session & Performance System - ${userSettings.branchName}`;
             document.getElementById('login-email').value = userSettings.email;
 
@@ -941,7 +1028,6 @@
             const thresholdLabel = document.getElementById('kpi-threshold-label');
             if (thresholdLabel) thresholdLabel.innerText = userSettings.warningThreshold || 3;
 
-            // Populate Settings Inputs
             if (document.getElementById('set-display-name')) {
                 document.getElementById('set-display-name').value = userSettings.displayName;
                 document.getElementById('set-role-title').value = userSettings.roleTitle;
@@ -1030,8 +1116,8 @@
                             <p class="text-xs font-bold text-slate-800">${t}</p>
                             <p class="text-[10px] text-slate-400">${clientCount} Member terhubung</p>
                         </div>
-                        <button type="button" onclick="removeTrainer(${index})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Trainer">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        <button type="button" onclick="removeTrainer(${index})" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Trainer">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </div>
                 `;
@@ -1100,25 +1186,23 @@
             reader.readAsText(file);
         }
 
-        // GLOBAL SEARCH SYNCHRONIZATION
+        // GLOBAL SEARCH SYNCHRONIZATION (DESKTOP + MOBILE + CLIENT TABLE)
         function handleGlobalSearch(val) {
             globalFilterQuery = val.toLowerCase().trim();
+            const desktopSearch = document.getElementById('global-quick-search');
+            const mobileSearch = document.getElementById('mobile-quick-search');
             const clientSearchInput = document.getElementById('search-input');
-            if (clientSearchInput && clientSearchInput.value !== val) {
-                clientSearchInput.value = val;
-            }
+
+            if (desktopSearch && desktopSearch.value !== val) desktopSearch.value = val;
+            if (mobileSearch && mobileSearch.value !== val) mobileSearch.value = val;
+            if (clientSearchInput && clientSearchInput.value !== val) clientSearchInput.value = val;
+
             renderDashboard();
             renderClients();
         }
 
         function syncSearchInputs(val) {
-            globalFilterQuery = val.toLowerCase().trim();
-            const globalInput = document.getElementById('global-quick-search');
-            if (globalInput && globalInput.value !== val) {
-                globalInput.value = val;
-            }
-            renderClients();
-            renderDashboard();
+            handleGlobalSearch(val);
         }
 
         // AUTH & LOGIN CONTROL
@@ -1243,18 +1327,31 @@
             views.forEach(v => {
                 const el = document.getElementById(`view-${v}`);
                 const nav = document.getElementById(`nav-${v}`);
+                const mobNav = document.getElementById(`mob-nav-${v}`);
+
                 if (el) el.classList.add('hidden');
                 if (nav) {
-                    nav.className = "w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition";
+                    nav.className = "w-full flex items-center gap-3 px-4 py-3.5 md:py-3 text-sm md:text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition";
+                }
+                if (mobNav) {
+                    mobNav.className = "flex flex-col items-center justify-center gap-1 text-slate-400 font-medium text-[10px] transition";
                 }
             });
 
             const activeEl = document.getElementById(`view-${viewName}`);
             const activeNav = document.getElementById(`nav-${viewName}`);
+            const activeMobNav = document.getElementById(`mob-nav-${viewName}`);
+
             if (activeEl) activeEl.classList.remove('hidden');
             if (activeNav) {
-                activeNav.className = "sidebar-active-tab w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold transition";
+                activeNav.className = "sidebar-active-tab w-full flex items-center gap-3 px-4 py-3.5 md:py-3 text-sm md:text-xs font-semibold transition";
             }
+            if (activeMobNav) {
+                activeMobNav.className = "flex flex-col items-center justify-center gap-1 text-teal-700 font-bold text-[10px] transition";
+            }
+
+            toggleMobileSidebar(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
             if (viewName === 'dashboard') {
                 renderDashboard();
@@ -1336,16 +1433,16 @@
             const btnWeekly = document.getElementById('btn-log-weekly');
             const btnMonthly = document.getElementById('btn-log-monthly');
 
-            btnDaily.className = "py-1 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition";
-            btnWeekly.className = "py-1 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition";
-            btnMonthly.className = "py-1 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition";
+            btnDaily.className = "py-1.5 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition";
+            btnWeekly.className = "py-1.5 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition";
+            btnMonthly.className = "py-1.5 rounded-lg font-semibold text-slate-500 hover:text-slate-900 transition";
 
             if (period === 'daily') {
-                btnDaily.className = "py-1 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition";
+                btnDaily.className = "py-1.5 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition";
             } else if (period === 'weekly') {
-                btnWeekly.className = "py-1 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition";
+                btnWeekly.className = "py-1.5 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition";
             } else if (period === 'monthly') {
-                btnMonthly.className = "py-1 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition";
+                btnMonthly.className = "py-1.5 rounded-lg font-bold bg-white text-slate-900 shadow-sm transition";
             }
 
             renderSessionLogs();
@@ -1393,8 +1490,8 @@
                             <div class="text-[9px] text-slate-400">${log.formattedDate}</div>
                         </td>
                         <td class="p-2">
-                            <div class="font-bold text-slate-900 truncate max-w-[120px]" title="${log.clientName}">${log.clientName}</div>
-                            <div class="text-[9px] text-slate-500 truncate max-w-[120px]">${log.trainerName || '-'}</div>
+                            <div class="font-bold text-slate-900 truncate max-w-[130px]" title="${log.clientName}">${log.clientName}</div>
+                            <div class="text-[9px] text-slate-500 truncate max-w-[130px]">${log.trainerName || '-'}</div>
                         </td>
                         <td class="p-2 text-center">${badgeMethod}</td>
                     </tr>
@@ -1620,7 +1717,7 @@
             trainerEvalData.forEach(row => {
                 evalTableBody.innerHTML += `
                     <tr class="hover:bg-slate-50">
-                        <td class="p-3 font-bold text-slate-900">${row.trainer}</td>
+                        <td class="p-3 font-bold text-slate-900 sticky left-0 bg-white">${row.trainer}</td>
                         <td class="p-3 text-center font-bold text-teal-700">${row.totalClients}</td>
                         <td class="p-3 text-center text-emerald-700 font-bold">${row.active}</td>
                         <td class="p-3 text-center text-amber-700 font-bold">${row.warning}</td>
@@ -1698,7 +1795,7 @@
                 console.error('Gagal menyalin pesan:', err);
             }
 
-            window.open('https://web.whatsapp.com/', '_blank');
+            window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(text), '_blank');
         }
 
         async function processScheduleOCR() {
@@ -1884,7 +1981,7 @@
                 const tbody = document.getElementById(targetElementId);
                 tbody.innerHTML = '';
                 if (dataList.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="p-2.5 text-center text-slate-400 italic text-[11px]">Tidak ada member</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400 italic text-[11px]">Tidak ada member</td></tr>';
                 } else {
                     dataList.forEach(c => {
                         const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
@@ -1894,14 +1991,14 @@
 
                         tbody.innerHTML += `
                             <tr class="hover:bg-slate-50">
-                                <td class="p-2">
-                                    <div class="font-bold text-slate-900 text-[11px] truncate max-w-[110px]" title="${c.name}">${c.name}</div>
+                                <td class="p-2.5">
+                                    <div class="font-bold text-slate-900 text-[11px] truncate max-w-[125px]" title="${c.name}">${c.name}</div>
                                     <div class="text-[9px] text-teal-700 font-mono font-semibold">${c.package || 'PT Smart'}</div>
                                 </td>
-                                <td class="p-2 text-slate-600 text-[10px] truncate max-w-[90px]" title="${c.trainer || 'Lainnya'}">${c.trainer || 'Lainnya'}</td>
-                                <td class="p-2 text-center font-bold text-[11px] ${highlightColorClass}">${rem}</td>
-                                <td class="p-2 text-center">
-                                    <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, '${noticeType}')" class="p-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] rounded-lg flex items-center justify-center mx-auto transition" title="Chat WA Trainer">
+                                <td class="p-2.5 text-slate-600 text-[10px] truncate max-w-[95px]" title="${c.trainer || 'Lainnya'}">${c.trainer || 'Lainnya'}</td>
+                                <td class="p-2.5 text-center font-bold text-[11px] ${highlightColorClass}">${rem}</td>
+                                <td class="p-2.5 text-center">
+                                    <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, '${noticeType}')" class="p-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] rounded-lg flex items-center justify-center mx-auto transition" title="Chat WA Trainer">
                                         <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
                                     </button>
                                 </td>
@@ -1934,10 +2031,10 @@
                                 <div class="text-[10px] text-teal-700 font-mono font-semibold">${c.package || 'PT Smart'}</div>
                             </td>
                             <td class="p-3 text-slate-600 text-xs">${c.trainer || 'Lainnya'}</td>
-                            <td class="p-3 text-center font-bold text-amber-700">${rem} Sesi</td>
+                            <td class="p-3 text-center font-bold text-amber-700 whitespace-nowrap">${rem} Sesi</td>
                             <td class="p-3 text-center">
-                                <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, 'WARNING')" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] rounded-lg flex items-center justify-center gap-1 mx-auto transition" title="Copy Pesan WA & Buka WhatsApp">
-                                    <i data-lucide="message-square" class="w-3 h-3"></i> Chat WA
+                                <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', ${rem}, 'WARNING')" class="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] rounded-lg flex items-center justify-center gap-1 mx-auto transition whitespace-nowrap" title="Kirim WA Trainer">
+                                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i> WA
                                 </button>
                             </td>
                         </tr>
@@ -1963,10 +2060,10 @@
                                 <div class="text-[10px] text-teal-700 font-mono font-semibold">${c.package || 'PT Smart'}</div>
                             </td>
                             <td class="p-3 text-slate-600 text-xs">${c.trainer || 'Lainnya'}</td>
-                            <td class="p-3 text-center font-bold text-rose-700">0 Sesi</td>
+                            <td class="p-3 text-center font-bold text-rose-700 whitespace-nowrap">0 Sesi</td>
                             <td class="p-3 text-center">
-                                <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', 0, 'EXPIRED')" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] rounded-lg flex items-center justify-center gap-1 mx-auto transition" title="Copy Pesan WA & Buka WhatsApp">
-                                    <i data-lucide="message-square" class="w-3 h-3"></i> Chat WA
+                                <button onclick="sendWATrainerNotice('${safeName}', '${safePkg}', '${safeTrainer}', 0, 'EXPIRED')" class="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] rounded-lg flex items-center justify-center gap-1 mx-auto transition whitespace-nowrap" title="Kirim WA Trainer">
+                                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i> WA
                                 </button>
                             </td>
                         </tr>
@@ -2029,37 +2126,37 @@
                 const used = c.used || 0;
                 const remaining = total - used;
 
-                let statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Aktif</span>';
+                let statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 whitespace-nowrap">Aktif</span>';
                 if (remaining <= 0) {
-                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">Habis</span>';
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 whitespace-nowrap">Habis</span>';
                 } else if (remaining <= thresh) {
-                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Hampir Habis</span>';
+                    statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap">Segera Habis</span>';
                 }
 
                 tableBody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="p-3.5"><input type="checkbox" onchange="toggleSelectClient(${c.id})" ${selectedClientIds.has(c.id) ? 'checked' : ''} class="rounded border-slate-300 text-teal-600 focus:ring-teal-500"></td>
-                        <td class="p-3.5">
-                            <div class="font-bold text-slate-900">${c.name}</div>
+                        <td class="p-3"><input type="checkbox" onchange="toggleSelectClient(${c.id})" ${selectedClientIds.has(c.id) ? 'checked' : ''} class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"></td>
+                        <td class="p-3 sticky left-0 bg-white z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] max-w-[160px] sm:max-w-[220px]">
+                            <div class="font-bold text-slate-900 truncate" title="${c.name}">${c.name}</div>
                             <div class="text-[10px] text-teal-700 font-mono font-semibold">${c.package || 'PT Smart'}</div>
                         </td>
-                        <td class="p-3.5 text-slate-600 text-xs">${c.trainer || 'Lainnya'}</td>
-                        <td class="p-3.5 text-center">
-                            <input type="number" value="${total}" min="1" onchange="updateClientTotal(${c.id}, this.value)" class="w-16 text-center bg-slate-50 border border-slate-300 rounded-lg py-1 text-xs text-slate-900 focus:outline-none focus:border-teal-600 font-semibold">
+                        <td class="p-3 text-slate-600 text-xs whitespace-nowrap">${c.trainer || 'Lainnya'}</td>
+                        <td class="p-3 text-center">
+                            <input type="number" value="${total}" min="1" onchange="updateClientTotal(${c.id}, this.value)" class="w-16 text-center bg-slate-50 border border-slate-300 rounded-lg py-1.5 text-sm md:text-xs text-slate-900 focus:outline-none focus:border-teal-600 font-semibold">
                         </td>
-                        <td class="p-3.5 text-center">
-                            <input type="number" value="${used}" min="0" onchange="updateClientUsed(${c.id}, this.value)" class="w-16 text-center bg-slate-50 border border-slate-300 rounded-lg py-1 text-xs font-bold text-amber-700 focus:outline-none focus:border-teal-600">
+                        <td class="p-3 text-center">
+                            <input type="number" value="${used}" min="0" onchange="updateClientUsed(${c.id}, this.value)" class="w-16 text-center bg-slate-50 border border-slate-300 rounded-lg py-1.5 text-sm md:text-xs font-bold text-amber-700 focus:outline-none focus:border-teal-600">
                         </td>
-                        <td class="p-3.5 text-center font-bold ${remaining <= thresh ? 'text-amber-700' : 'text-teal-700'}">${remaining}</td>
-                        <td class="p-3.5 text-center">${statusBadge}</td>
-                        <td class="p-3.5 text-center space-x-1">
-                            <button onclick="openEditClientModal(${c.id})" class="p-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg transition" title="Edit Detail Member">
+                        <td class="p-3 text-center font-bold text-sm md:text-xs ${remaining <= thresh ? 'text-amber-700' : 'text-teal-700'}">${remaining}</td>
+                        <td class="p-3 text-center">${statusBadge}</td>
+                        <td class="p-3 text-center whitespace-nowrap space-x-1">
+                            <button onclick="openEditClientModal(${c.id})" class="p-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg transition" title="Edit Detail Member">
                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="deductSession(${c.id})" ${remaining <= 0 ? 'disabled' : ''} class="p-1.5 bg-teal-100 hover:bg-teal-200 text-teal-800 rounded-lg transition disabled:opacity-30" title="Potong 1 Sesi">
+                            <button onclick="deductSession(${c.id})" ${remaining <= 0 ? 'disabled' : ''} class="p-2 bg-teal-100 hover:bg-teal-200 text-teal-800 rounded-lg transition disabled:opacity-30" title="Potong 1 Sesi">
                                 <i data-lucide="minus-circle" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="deleteClient(${c.id})" class="p-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg transition" title="Hapus Member">
+                            <button onclick="deleteClient(${c.id})" class="p-2 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg transition" title="Hapus Member">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </td>
