@@ -62,7 +62,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row antialiased">
 
-    <!-- TOAST NOTIFICATION CONTAINER (V7) -->
+    <!-- TOAST NOTIFICATION CONTAINER -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-[110] flex flex-col gap-2 max-w-sm pointer-events-none"></div>
 
     <!-- MODAL SCREEN / OVERLAY LOGIN (SECURED ACCESS) -->
@@ -76,7 +76,7 @@
                     <h2 class="text-2xl font-bold text-slate-900 tracking-tight">FTL GYM TRACKER</h2>
                     <span class="px-2 py-0.5 text-[10px] font-extrabold bg-teal-100 text-teal-800 rounded-full">v7.0</span>
                 </div>
-                <p class="text-xs text-teal-700 font-semibold">Session & Performance System - Depok Lama</p>
+                <p id="login-branch-subtitle" class="text-xs text-teal-700 font-semibold">Session & Performance System - Depok Lama</p>
             </div>
 
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
@@ -111,7 +111,7 @@
             <!-- User Profile Block -->
             <div class="flex items-center gap-3 px-3 pr-4">
                 <div class="w-12 h-12 rounded-full bg-teal-500/20 border-2 border-teal-400/40 p-0.5 overflow-hidden flex-shrink-0">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Avatar" class="w-full h-full object-cover rounded-full">
+                    <img id="sidebar-avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Avatar" class="w-full h-full object-cover rounded-full">
                 </div>
                 <div class="overflow-hidden">
                     <div class="flex items-center gap-1.5">
@@ -119,7 +119,7 @@
                         <span class="bg-teal-500/20 text-teal-300 border border-teal-500/30 text-[9px] font-extrabold px-1.5 py-0.2 rounded">v7</span>
                     </div>
                     <p id="active-role" class="text-[11px] text-teal-400 font-semibold truncate">FITNESS MANAGER</p>
-                    <p class="text-[10px] text-slate-400 truncate">mfatihin96@gmail.com</p>
+                    <p id="active-email-display" class="text-[10px] text-slate-400 truncate">mfatihin96@gmail.com</p>
                 </div>
             </div>
 
@@ -134,6 +134,9 @@
                 <button id="nav-clients" onclick="switchView('clients')" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition">
                     <i data-lucide="users" class="w-4 h-4"></i> Data Client & Log
                 </button>
+                <button id="nav-settings" onclick="switchView('settings')" class="w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Pengaturan
+                </button>
             </nav>
         </div>
 
@@ -141,7 +144,7 @@
         <div class="space-y-2 pr-4 pt-6 border-t border-slate-700/60">
             <div class="px-3 py-1.5 flex items-center justify-between text-[10px] text-slate-400 font-mono">
                 <span>BUILD VERSION</span>
-                <span class="text-teal-400 font-bold">v7.0.2026</span>
+                <span class="text-teal-400 font-bold">v7.1.2026</span>
             </div>
             <button onclick="openFirebaseConfigModal()" class="w-full px-3 py-2 bg-slate-700/60 hover:bg-slate-700 text-amber-400 text-xs font-semibold rounded-xl flex items-center gap-2 transition">
                 <i data-lucide="database" class="w-4 h-4"></i> Firebase Cloud
@@ -162,14 +165,14 @@
         <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap justify-between items-center gap-4 sticky top-0 z-40">
             <div>
                 <div class="flex items-center gap-2.5">
-                    <h1 class="text-xl font-bold text-slate-900 tracking-tight">Welcome M Fatihin !</h1>
+                    <h1 id="header-welcome-title" class="text-xl font-bold text-slate-900 tracking-tight">Welcome M Fatihin !</h1>
                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">System v7</span>
                 </div>
-                <p class="text-xs text-slate-500">FTL Gym Depok Lama - Performance & Session Management</p>
+                <p id="header-branch-subtitle" class="text-xs text-slate-500">FTL Gym Depok Lama - Performance & Session Management</p>
             </div>
 
             <div class="flex items-center gap-4">
-                <!-- Global Quick Search Box (V7 Live Filter) -->
+                <!-- Global Quick Search Box -->
                 <div class="relative hidden sm:block">
                     <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
                     <input type="text" id="global-quick-search" oninput="handleGlobalSearch(this.value)" placeholder="Cari cepat nama member..." class="bg-slate-100 border border-slate-200 rounded-full pl-9 pr-4 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-teal-600 focus:bg-white w-56 transition">
@@ -208,7 +211,7 @@
                     </div>
                     <div class="bg-white border border-slate-200/80 rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition">
                         <div>
-                            <p class="text-xs font-semibold text-slate-500">Sesi Segera Habis (&le; 3)</p>
+                            <p class="text-xs font-semibold text-slate-500">Sesi Segera Habis (&le; <span id="kpi-threshold-label">3</span>)</p>
                             <p id="dash-warning-clients" class="text-2xl font-bold text-amber-600 mt-1">0</p>
                         </div>
                         <div class="p-3.5 bg-amber-50 text-amber-600 rounded-2xl"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
@@ -615,6 +618,128 @@
                     </div>
                 </div>
             </div>
+
+            <!-- VIEW 4: MENU PENGATURAN (PROFIL, TRAINER & SISTEM) -->
+            <div id="view-settings" class="hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Kolom 1: Pengaturan Profil Manager & Cabang -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-5 shadow-sm">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="user-cog" class="w-5 h-5 text-teal-600"></i> Profil Pengguna & Cabang
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Sesuaikan identitas profil, foto avatar, dan informasi cabang aktif.</p>
+                        </div>
+
+                        <!-- Avatar Preview & Upload -->
+                        <div class="flex items-center gap-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                            <img id="settings-avatar-preview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Preview" class="w-16 h-16 rounded-full object-cover border-2 border-teal-600 flex-shrink-0">
+                            <div class="space-y-1.5 flex-1">
+                                <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-700 hover:bg-teal-800 text-white text-[11px] font-bold rounded-xl cursor-pointer transition">
+                                    <i data-lucide="camera" class="w-3.5 h-3.5"></i> Ganti Foto Profil
+                                    <input type="file" id="settings-avatar-file" accept="image/*" onchange="handleAvatarUpload(event)" class="hidden">
+                                </label>
+                                <button type="button" onclick="resetDefaultAvatar()" class="block text-[10px] text-slate-500 hover:text-rose-600 font-medium">Gunakan Foto Bawaan</button>
+                            </div>
+                        </div>
+
+                        <form id="settings-profile-form" onsubmit="saveUserProfileSettings(event)" class="space-y-3.5">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Tampilan</label>
+                                <input type="text" id="set-display-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Jabatan / Role Label</label>
+                                <input type="text" id="set-role-title" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Email Akun Resmi</label>
+                                <input type="email" id="set-email" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Cabang / Club</label>
+                                <input type="text" id="set-branch-name" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
+                            </div>
+                            <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md shadow-teal-700/20">
+                                <i data-lucide="save" class="w-4 h-4"></i> Simpan Profil
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Kolom 2: Manajemen Daftar Personal Trainer -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-5 shadow-sm flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                                <div>
+                                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                        <i data-lucide="award" class="w-5 h-5 text-teal-600"></i> Tim Personal Trainer
+                                    </h2>
+                                    <p class="text-xs text-slate-500 mt-0.5">Kelola daftar trainer aktif untuk grafik dan penugasan.</p>
+                                </div>
+                                <span id="settings-trainer-count" class="bg-teal-100 text-teal-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">11 Trainer</span>
+                            </div>
+
+                            <!-- Input Tambah Trainer -->
+                            <div class="flex gap-2">
+                                <input type="text" id="new-trainer-name" placeholder="Nama lengkap trainer baru..." class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600 focus:bg-white">
+                                <button type="button" onclick="addNewTrainer()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl flex items-center gap-1 transition">
+                                    <i data-lucide="plus" class="w-4 h-4"></i> Tambah
+                                </button>
+                            </div>
+
+                            <!-- List Trainer Aktif -->
+                            <div id="settings-trainer-list" class="overflow-y-auto max-h-72 divide-y divide-slate-100 border border-slate-200 rounded-xl bg-slate-50/50"></div>
+                        </div>
+
+                        <button type="button" onclick="resetDefaultTrainers()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset ke 11 Trainer Default Depok Lama
+                        </button>
+                    </div>
+
+                    <!-- Kolom 3: Konfigurasi Notifikasi WA, Ambang Batas & Restore -->
+                    <div class="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-5 shadow-sm">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i data-lucide="sliders" class="w-5 h-5 text-teal-600"></i> Sistem & Pemeliharaan Data
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Atur standar peringatan sesi, format pesan WA, dan pemulihan data.</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Ambang Batas Peringatan Sesi (&le; Sesi)</label>
+                                <input type="number" id="set-warning-threshold" min="1" max="15" value="3" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-teal-600">
+                                <p class="text-[10px] text-slate-400 mt-1">Member dengan sisa sesi di bawah atau sama dengan angka ini masuk kategori Segera Habis.</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Template Pesan WA Reminder Trainer</label>
+                                <textarea id="set-wa-template" rows="4" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-[11px] text-slate-800 focus:outline-none focus:border-teal-600 font-mono"></textarea>
+                                <p class="text-[10px] text-slate-400 mt-1">Gunakan variabel: <code>{trainer}</code>, <code>{member}</code>, <code>{paket}</code>, <code>{sisa}</code>, <code>{cabang}</code></p>
+                            </div>
+
+                            <button type="button" onclick="saveSystemPreferences()" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                                <i data-lucide="check" class="w-4 h-4"></i> Terapkan Pengaturan Sistem
+                            </button>
+                        </div>
+
+                        <!-- Restore Backup JSON -->
+                        <div class="pt-4 border-t border-slate-100 space-y-2.5">
+                            <p class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <i data-lucide="upload" class="w-4 h-4 text-amber-600"></i> Restore Database dari Backup JSON
+                            </p>
+                            <p class="text-[11px] text-slate-500">Pulihkan seluruh daftar member & sisa sesi menggunakan file <code>.json</code> hasil backup.</p>
+                            <label class="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition">
+                                <i data-lucide="file-up" class="w-4 h-4"></i> Pilih File Backup (.json)
+                                <input type="file" accept=".json" onchange="handleRestoreJSON(event)" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -731,16 +856,30 @@
         </div>
     </div>
 
-    <!-- Script Application Logics (v7) -->
+    <!-- Script Application Logics (v7.1 + Settings Module) -->
     <script>
-        const TRAINERS = [
+        const DEFAULT_TRAINERS = [
             "Arini Permata Pahwandi", "Bima Aminullah", "Caraka Vira Satriya",
             "Davara Cahya Alamanda", "Dedy Mawansyah", "Mega Putri L. S.",
             "Muhammad Alwansyah Arsathama", "Rindu Adji",
             "Rosi Kurnia A.I.S.", "Wahyu Setiawan", "Yomi David A.S."
         ];
 
-        const ALL_STAFF_OPTIONS = [...TRAINERS, "M Fatihin"];
+        const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
+        const DEFAULT_WA_TEMPLATE = "Halo Coach *{trainer}*,\n\nInfo dari {cabang}:\nSesi latihan client Anda *{member}* (Paket: {paket}) tersisa *{sisa} Sesi* lagi.\n\nMohon diinfokan kepada client untuk persiapan renewal/re-assessment. Terima kasih!";
+
+        let userSettings = JSON.parse(localStorage.getItem('ftl_user_settings')) || {
+            displayName: "M Fatihin",
+            roleTitle: "FITNESS MANAGER",
+            email: "mfatihin96@gmail.com",
+            branchName: "FTL Gym Depok Lama",
+            avatarUrl: DEFAULT_AVATAR,
+            warningThreshold: 3,
+            waTemplate: DEFAULT_WA_TEMPLATE
+        };
+
+        let TRAINERS = JSON.parse(localStorage.getItem('ftl_trainers_list')) || [...DEFAULT_TRAINERS];
+        let ALL_STAFF_OPTIONS = [...TRAINERS, userSettings.displayName];
 
         let clients = JSON.parse(localStorage.getItem('ftl_clients')) || [];
         let sessionLogs = JSON.parse(localStorage.getItem('ftl_session_logs')) || [];
@@ -756,7 +895,7 @@
         let chartSessionStatusInstance = null;
         let currentUserRole = null;
 
-        // TOAST NOTIFICATION HELPER (V7)
+        // TOAST NOTIFICATION HELPER
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             if (!container) return;
@@ -782,7 +921,186 @@
             }, 3500);
         }
 
-        // GLOBAL SEARCH SYNCHRONIZATION (V7)
+        // APPLY PROFILE & SYSTEM SETTINGS TO UI
+        function applyUserSettingsToUI() {
+            ALL_STAFF_OPTIONS = Array.from(new Set([...TRAINERS, userSettings.displayName]));
+
+            document.getElementById('active-username').innerText = userSettings.displayName;
+            document.getElementById('active-role').innerText = userSettings.roleTitle.toUpperCase();
+            document.getElementById('active-email-display').innerText = userSettings.email;
+            document.getElementById('header-welcome-title').innerText = `Welcome ${userSettings.displayName} !`;
+            document.getElementById('header-branch-subtitle').innerText = `${userSettings.branchName} - Performance & Session Management`;
+            document.getElementById('login-branch-subtitle').innerText = `Session & Performance System - ${userSettings.branchName}`;
+            document.getElementById('login-email').value = userSettings.email;
+
+            const avatarImg = document.getElementById('sidebar-avatar-img');
+            const previewImg = document.getElementById('settings-avatar-preview');
+            if (avatarImg) avatarImg.src = userSettings.avatarUrl || DEFAULT_AVATAR;
+            if (previewImg) previewImg.src = userSettings.avatarUrl || DEFAULT_AVATAR;
+
+            const thresholdLabel = document.getElementById('kpi-threshold-label');
+            if (thresholdLabel) thresholdLabel.innerText = userSettings.warningThreshold || 3;
+
+            // Populate Settings Inputs
+            if (document.getElementById('set-display-name')) {
+                document.getElementById('set-display-name').value = userSettings.displayName;
+                document.getElementById('set-role-title').value = userSettings.roleTitle;
+                document.getElementById('set-email').value = userSettings.email;
+                document.getElementById('set-branch-name').value = userSettings.branchName;
+                document.getElementById('set-warning-threshold').value = userSettings.warningThreshold || 3;
+                document.getElementById('set-wa-template').value = userSettings.waTemplate || DEFAULT_WA_TEMPLATE;
+            }
+
+            renderSettingsTrainerList();
+            populateTrainerDropdowns();
+        }
+
+        function handleAvatarUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                return showToast('Ukuran foto maksimal 2MB agar penyimpanan tetap ringan.', 'warning');
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                userSettings.avatarUrl = evt.target.result;
+                localStorage.setItem('ftl_user_settings', JSON.stringify(userSettings));
+                applyUserSettingsToUI();
+                showToast('Foto profil berhasil diperbarui!');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetDefaultAvatar() {
+            userSettings.avatarUrl = DEFAULT_AVATAR;
+            localStorage.setItem('ftl_user_settings', JSON.stringify(userSettings));
+            applyUserSettingsToUI();
+            showToast('Foto profil dikembalikan ke bawaan.');
+        }
+
+        function saveUserProfileSettings(e) {
+            e.preventDefault();
+            userSettings.displayName = document.getElementById('set-display-name').value.trim();
+            userSettings.roleTitle = document.getElementById('set-role-title').value.trim();
+            userSettings.email = document.getElementById('set-email').value.trim();
+            userSettings.branchName = document.getElementById('set-branch-name').value.trim();
+
+            localStorage.setItem('ftl_user_settings', JSON.stringify(userSettings));
+
+            const savedSession = JSON.parse(sessionStorage.getItem('ftl_auth_session'));
+            if (savedSession) {
+                savedSession.displayName = userSettings.displayName;
+                savedSession.email = userSettings.email;
+                sessionStorage.setItem('ftl_auth_session', JSON.stringify(savedSession));
+            }
+
+            applyUserSettingsToUI();
+            showToast('Profil & identitas cabang berhasil disimpan!');
+        }
+
+        function saveSystemPreferences() {
+            const thresh = parseInt(document.getElementById('set-warning-threshold').value) || 3;
+            const waTpl = document.getElementById('set-wa-template').value.trim() || DEFAULT_WA_TEMPLATE;
+
+            userSettings.warningThreshold = thresh;
+            userSettings.waTemplate = waTpl;
+            localStorage.setItem('ftl_user_settings', JSON.stringify(userSettings));
+
+            applyUserSettingsToUI();
+            renderDashboard();
+            renderClients();
+            showToast('Pengaturan sistem & template WA berhasil diterapkan!');
+        }
+
+        // TRAINER MANAGEMENT IN SETTINGS
+        function renderSettingsTrainerList() {
+            const listEl = document.getElementById('settings-trainer-list');
+            const countBadge = document.getElementById('settings-trainer-count');
+            if (!listEl) return;
+
+            countBadge.innerText = `${TRAINERS.length} Trainer`;
+            listEl.innerHTML = '';
+
+            TRAINERS.forEach((t, index) => {
+                const clientCount = clients.filter(c => c.trainer === t).length;
+                listEl.innerHTML += `
+                    <div class="flex items-center justify-between px-3.5 py-2.5 hover:bg-white transition">
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">${t}</p>
+                            <p class="text-[10px] text-slate-400">${clientCount} Member terhubung</p>
+                        </div>
+                        <button type="button" onclick="removeTrainer(${index})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus Trainer">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function addNewTrainer() {
+            const input = document.getElementById('new-trainer-name');
+            const name = input.value.trim();
+            if (!name) return showToast('Masukkan nama trainer terlebih dahulu.', 'warning');
+            if (TRAINERS.some(t => t.toLowerCase() === name.toLowerCase())) {
+                return showToast('Nama trainer sudah ada dalam daftar!', 'warning');
+            }
+
+            TRAINERS.push(name);
+            localStorage.setItem('ftl_trainers_list', JSON.stringify(TRAINERS));
+            input.value = '';
+            applyUserSettingsToUI();
+            renderDashboard();
+            showToast(`Trainer ${name} berhasil ditambahkan!`);
+        }
+
+        function removeTrainer(index) {
+            const target = TRAINERS[index];
+            if (confirm(`Hapus trainer "${target}" dari daftar aktif? Data member yang sudah ada tidak akan dihapus.`)) {
+                TRAINERS.splice(index, 1);
+                localStorage.setItem('ftl_trainers_list', JSON.stringify(TRAINERS));
+                applyUserSettingsToUI();
+                renderDashboard();
+                showToast(`Trainer ${target} dihapus dari daftar.`);
+            }
+        }
+
+        function resetDefaultTrainers() {
+            if (confirm('Kembalikan daftar trainer ke 11 Personal Trainer default FTL Depok Lama?')) {
+                TRAINERS = [...DEFAULT_TRAINERS];
+                localStorage.setItem('ftl_trainers_list', JSON.stringify(TRAINERS));
+                applyUserSettingsToUI();
+                renderDashboard();
+                showToast('Daftar trainer dikembalikan ke default.');
+            }
+        }
+
+        // RESTORE BACKUP JSON
+        function handleRestoreJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    if (!Array.isArray(parsed)) {
+                        return showToast('Format file JSON backup tidak valid!', 'error');
+                    }
+                    if (confirm(`Ditemukan ${parsed.length} data member pada file backup. Timpa database saat ini dengan data backup?`)) {
+                        clients = parsed;
+                        saveToStorage();
+                        showToast(`Berhasil memulihkan ${clients.length} data member dari backup!`);
+                    }
+                } catch (err) {
+                    showToast('Gagal membaca file JSON backup.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // GLOBAL SEARCH SYNCHRONIZATION
         function handleGlobalSearch(val) {
             globalFilterQuery = val.toLowerCase().trim();
             const clientSearchInput = document.getElementById('search-input');
@@ -811,8 +1129,10 @@
             if (savedSession && savedSession.isLoggedIn) {
                 currentUserRole = savedSession.role || 'ADMIN';
                 loginOverlay.classList.add('hidden');
-                document.getElementById('active-username').innerText = savedSession.displayName || 'M Fatihin';
-                document.getElementById('active-role').innerText = currentUserRole === 'ADMIN' ? 'FITNESS MANAGER' : 'TRAINER';
+                applyUserSettingsToUI();
+                if (currentUserRole !== 'ADMIN') {
+                    document.getElementById('active-role').innerText = 'TRAINER';
+                }
                 applyRolePermissions();
             } else {
                 loginOverlay.classList.remove('hidden');
@@ -832,13 +1152,13 @@
             const sessionData = {
                 isLoggedIn: true,
                 email: email,
-                displayName: "M Fatihin",
+                displayName: userSettings.displayName,
                 role: role
             };
 
             sessionStorage.setItem('ftl_auth_session', JSON.stringify(sessionData));
             checkAuthStatus();
-            showToast('Selamat datang kembali di FTL Tracker v7, M Fatihin!');
+            showToast(`Selamat datang kembali di FTL Tracker v7, ${userSettings.displayName}!`);
         }
 
         async function handleForgotPassword() {
@@ -882,7 +1202,7 @@
             }
 
             if (clean.includes("alwansyah") || clean.includes("arsathama")) return "Muhammad Alwansyah Arsathama";
-            if (clean.includes("fatihin")) return "M Fatihin";
+            if (clean.includes("fatihin")) return userSettings.displayName || "M Fatihin";
             if (clean.includes("arini") || clean.includes("pahwandi")) return "Arini Permata Pahwandi";
             if (clean.includes("bima") || clean.includes("aminullah")) return "Bima Aminullah";
             if (clean.includes("caraka") || clean.includes("satriya")) return "Caraka Vira Satriya";
@@ -919,42 +1239,40 @@
         }
 
         function switchView(viewName) {
-            const dashView = document.getElementById('view-dashboard');
-            const evalView = document.getElementById('view-evaluation');
-            const clientView = document.getElementById('view-clients');
-            
-            const navDash = document.getElementById('nav-dashboard');
-            const navEval = document.getElementById('nav-evaluation');
-            const navClients = document.getElementById('nav-clients');
+            const views = ['dashboard', 'evaluation', 'clients', 'settings'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                const nav = document.getElementById(`nav-${v}`);
+                if (el) el.classList.add('hidden');
+                if (nav) {
+                    nav.className = "w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition";
+                }
+            });
 
-            dashView.classList.add('hidden');
-            evalView.classList.add('hidden');
-            clientView.classList.add('hidden');
-
-            navDash.className = "w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition";
-            navEval.className = "w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition";
-            navClients.className = "w-full flex items-center gap-3 px-4 py-3 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-l-xl transition";
+            const activeEl = document.getElementById(`view-${viewName}`);
+            const activeNav = document.getElementById(`nav-${viewName}`);
+            if (activeEl) activeEl.classList.remove('hidden');
+            if (activeNav) {
+                activeNav.className = "sidebar-active-tab w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold transition";
+            }
 
             if (viewName === 'dashboard') {
-                dashView.classList.remove('hidden');
-                navDash.className = "sidebar-active-tab w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold transition";
                 renderDashboard();
             } else if (viewName === 'evaluation') {
-                evalView.classList.remove('hidden');
-                navEval.className = "sidebar-active-tab w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold transition";
                 renderEvaluationReport();
-            } else {
-                clientView.classList.remove('hidden');
-                navClients.className = "sidebar-active-tab w-full flex items-center gap-3 px-4 py-3 text-xs font-semibold transition";
+            } else if (viewName === 'clients') {
                 renderClients();
                 renderSessionLogs();
+            } else if (viewName === 'settings') {
+                applyUserSettingsToUI();
             }
+            lucide.createIcons();
         }
 
         function initApp() {
             lucide.createIcons();
+            applyUserSettingsToUI();
             checkAuthStatus();
-            populateTrainerDropdowns();
             renderClients();
             renderDashboard();
             renderSessionLogs();
@@ -968,7 +1286,9 @@
             const filterTrainer = document.getElementById('filter-trainer');
             const editTrainer = document.getElementById('edit-client-trainer');
             const addSingleTrainer = document.getElementById('add-single-trainer');
+            if (!filterTrainer) return;
 
+            const currentFilter = filterTrainer.value || 'ALL';
             filterTrainer.innerHTML = '<option value="ALL">Semua Trainer</option>';
             editTrainer.innerHTML = '';
             addSingleTrainer.innerHTML = '';
@@ -982,6 +1302,7 @@
             filterTrainer.innerHTML += '<option value="OTHER">Lainnya / Belum Ditentukan</option>';
             editTrainer.innerHTML += '<option value="Lainnya / Belum Ditentukan">Lainnya / Belum Ditentukan</option>';
             addSingleTrainer.innerHTML += '<option value="Lainnya / Belum Ditentukan">Lainnya / Belum Ditentukan</option>';
+            filterTrainer.value = currentFilter;
         }
 
         function parsePackageToNumber(pkgStr) {
@@ -1146,6 +1467,7 @@
         }
 
         function exportSpecificCategory(categoryType) {
+            const thresh = userSettings.warningThreshold || 3;
             let targetClients = [];
             let fileName = "";
 
@@ -1155,9 +1477,9 @@
             } else if (categoryType === 'WARNING') {
                 targetClients = clients.filter(c => {
                     const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
-                    return rem <= 3 && rem > 0;
+                    return rem <= thresh && rem > 0;
                 });
-                fileName = "FTL_Member_Sesi_Segera_Habis_1-3.xlsx";
+                fileName = `FTL_Member_Sesi_Segera_Habis_1-${thresh}.xlsx`;
             }
 
             if (targetClients.length === 0) {
@@ -1176,7 +1498,7 @@
                     "Total Sesi": total,
                     "Sesi Terpakai": used,
                     "Sisa Sesi": rem,
-                    "Status Sesi": rem <= 0 ? "Habis (0)" : "Segera Habis (1-3)"
+                    "Status Sesi": rem <= 0 ? "Habis (0)" : `Segera Habis (1-${thresh})`
                 };
             });
 
@@ -1188,6 +1510,7 @@
         }
 
         function exportFilteredClients() {
+            const thresh = userSettings.warningThreshold || 3;
             const searchVal = document.getElementById('search-input').value.toLowerCase();
             const trainerFilter = document.getElementById('filter-trainer').value;
             const statusFilter = document.getElementById('filter-status').value;
@@ -1204,8 +1527,8 @@
                 const total = c.total || parsePackageToNumber(c.package);
                 const rem = total - (c.used || 0);
                 let matchStatus = true;
-                if (statusFilter === 'ACTIVE') matchStatus = rem > 3;
-                else if (statusFilter === 'WARNING') matchStatus = rem <= 3 && rem > 0;
+                if (statusFilter === 'ACTIVE') matchStatus = rem > thresh;
+                else if (statusFilter === 'WARNING') matchStatus = rem <= thresh && rem > 0;
                 else if (statusFilter === 'EXPIRED') matchStatus = rem <= 0;
 
                 return matchName && matchTrainer && matchStatus;
@@ -1221,7 +1544,7 @@
                 const rem = total - used;
                 let statusText = "Aktif";
                 if (rem <= 0) statusText = "Habis (0)";
-                else if (rem <= 3) statusText = "Hampir Habis (1-3)";
+                else if (rem <= thresh) statusText = `Hampir Habis (1-${thresh})`;
 
                 return {
                     "No": idx + 1,
@@ -1243,6 +1566,7 @@
         }
 
         function renderEvaluationReport() {
+            const thresh = userSettings.warningThreshold || 3;
             let grandTotalSessions = 0;
             let grandUsedSessions = 0;
             let totalRenewalClients = 0;
@@ -1260,7 +1584,7 @@
                     tTotalSessions += total;
                     tUsedSessions += used;
 
-                    if (rem > 3) tActive++;
+                    if (rem > thresh) tActive++;
                     else if (rem > 0) tWarning++;
                     else tExpired++;
                 });
@@ -1309,6 +1633,7 @@
         }
 
         function exportEvaluationSummary() {
+            const thresh = userSettings.warningThreshold || 3;
             const trainerEvalData = TRAINERS.map(t => {
                 const trainerClients = clients.filter(c => c.trainer === t);
                 let tActive = 0, tWarning = 0, tExpired = 0;
@@ -1322,7 +1647,7 @@
                     tTotalSessions += total;
                     tUsedSessions += used;
 
-                    if (rem > 3) tActive++;
+                    if (rem > thresh) tActive++;
                     else if (rem > 0) tWarning++;
                     else tExpired++;
                 });
@@ -1332,8 +1657,8 @@
                 return {
                     "Nama Trainer": t,
                     "Total Client": trainerClients.length,
-                    "Client Aktif (>3)": tActive,
-                    "Segera Habis (1-3)": tWarning,
+                    [`Client Aktif (>${thresh})`]: tActive,
+                    [`Segera Habis (1-${thresh})`]: tWarning,
                     "Habis (0)": tExpired,
                     "Total Sesi Paket": tTotalSessions,
                     "Sesi Terpakai": tUsedSessions,
@@ -1350,13 +1675,20 @@
 
         async function sendWATrainerNotice(clientName, packageName, trainerName, remaining, type) {
             let text = "";
+            const branch = userSettings.branchName || "FTL Gym Depok Lama";
 
             if (type === 'NOTICE_10') {
-                text = `Halo Coach *${trainerName}*,\n\nInfo dari FTL Gym Depok Lama:\nSesi latihan client Anda *${clientName}* (Paket: ${packageName}) tersisa *${remaining} Sesi* lagi.\n\nMohon disiapkan program lanjutan dan jadwal re-assessment client. Terima kasih!`;
+                text = `Halo Coach *${trainerName}*,\n\nInfo dari ${branch}:\nSesi latihan client Anda *${clientName}* (Paket: ${packageName}) tersisa *${remaining} Sesi* lagi.\n\nMohon disiapkan program lanjutan dan jadwal re-assessment client. Terima kasih!`;
             } else if (type === 'NOTICE_5' || type === 'WARNING') {
-                text = `Halo Coach *${trainerName}*,\n\nInfo dari FTL Gym Depok Lama:\nSesi latihan client Anda *${clientName}* (Paket: ${packageName}) tersisa *${remaining} Sesi* lagi.\n\nMohon diinfokan kepada client untuk persiapan renewal/re-assessment. Terima kasih!`;
+                const tpl = userSettings.waTemplate || DEFAULT_WA_TEMPLATE;
+                text = tpl
+                    .replace(/\{trainer\}/g, trainerName)
+                    .replace(/\{member\}/g, clientName)
+                    .replace(/\{paket\}/g, packageName)
+                    .replace(/\{sisa\}/g, remaining)
+                    .replace(/\{cabang\}/g, branch);
             } else if (type === 'EXPIRED') {
-                text = `Halo Coach *${trainerName}*,\n\nInfo dari FTL Gym Depok Lama:\nSesi latihan client Anda *${clientName}* (Paket: ${packageName}) *SUDAH HABIS (0 Sesi)*.\n\nMohon segera dihubungi kembali client tersebut untuk dilakukan *Assessment / Re-assessment* dan proses renewal paket. Terima kasih!`;
+                text = `Halo Coach *${trainerName}*,\n\nInfo dari ${branch}:\nSesi latihan client Anda *${clientName}* (Paket: ${packageName}) *SUDAH HABIS (0 Sesi)*.\n\nMohon segera dihubungi kembali client tersebut untuk dilakukan *Assessment / Re-assessment* dan proses renewal paket. Terima kasih!`;
             }
 
             try {
@@ -1508,13 +1840,14 @@
         }
 
         function renderDashboard() {
+            const thresh = userSettings.warningThreshold || 3;
             const query = globalFilterQuery;
             const matchGlobal = (c) => !query || String(c.name || '').toLowerCase().includes(query) || String(c.trainer || '').toLowerCase().includes(query);
 
             const activeClients = clients.filter(c => ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) > 0);
             const warningClients = clients.filter(c => {
                 const rem = (c.total || parsePackageToNumber(c.package)) - (c.used || 0);
-                return rem <= 3 && rem > 0;
+                return rem <= thresh && rem > 0;
             });
             const inactiveClients = clients.filter(c => ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) <= 0);
 
@@ -1582,7 +1915,7 @@
             populateSubTable('table-sess-5', listSess5, 'NOTICE_5', 'text-amber-700');
             populateSubTable('table-sess-3', listSess3, 'WARNING', 'text-rose-700');
 
-            // Tabel Client Sesi Hampir Habis (Sisa 1-3 Sesi Ringkasan)
+            // Tabel Client Sesi Hampir Habis
             const tableWarningBody = document.getElementById('dash-table-warning');
             tableWarningBody.innerHTML = '';
             if (filteredWarning.length === 0) {
@@ -1646,6 +1979,7 @@
         }
 
         function renderClients() {
+            const thresh = userSettings.warningThreshold || 3;
             const tableBody = document.getElementById('client-table-body');
             const selectClient = document.getElementById('select-client');
             const searchVal = document.getElementById('search-input').value.toLowerCase();
@@ -1667,8 +2001,8 @@
                 const total = c.total || parsePackageToNumber(c.package);
                 const rem = total - (c.used || 0);
                 let matchStatus = true;
-                if (statusFilter === 'ACTIVE') matchStatus = rem > 3;
-                else if (statusFilter === 'WARNING') matchStatus = rem <= 3 && rem > 0;
+                if (statusFilter === 'ACTIVE') matchStatus = rem > thresh;
+                else if (statusFilter === 'WARNING') matchStatus = rem <= thresh && rem > 0;
                 else if (statusFilter === 'EXPIRED') matchStatus = rem <= 0;
 
                 return matchName && matchTrainer && matchStatus;
@@ -1698,7 +2032,7 @@
                 let statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Aktif</span>';
                 if (remaining <= 0) {
                     statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">Habis</span>';
-                } else if (remaining <= 3) {
+                } else if (remaining <= thresh) {
                     statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Hampir Habis</span>';
                 }
 
@@ -1716,7 +2050,7 @@
                         <td class="p-3.5 text-center">
                             <input type="number" value="${used}" min="0" onchange="updateClientUsed(${c.id}, this.value)" class="w-16 text-center bg-slate-50 border border-slate-300 rounded-lg py-1 text-xs font-bold text-amber-700 focus:outline-none focus:border-teal-600">
                         </td>
-                        <td class="p-3.5 text-center font-bold ${remaining <= 3 ? 'text-amber-700' : 'text-teal-700'}">${remaining}</td>
+                        <td class="p-3.5 text-center font-bold ${remaining <= thresh ? 'text-amber-700' : 'text-teal-700'}">${remaining}</td>
                         <td class="p-3.5 text-center">${statusBadge}</td>
                         <td class="p-3.5 text-center space-x-1">
                             <button onclick="openEditClientModal(${c.id})" class="p-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg transition" title="Edit Detail Member">
@@ -1733,7 +2067,6 @@
                 `;
             });
 
-            // Isi dropdown select-client dengan seluruh member aktif
             clients.forEach(c => {
                 const total = c.total || parsePackageToNumber(c.package);
                 const remaining = total - (c.used || 0);
@@ -1747,8 +2080,9 @@
         }
 
         function renderCharts(activeCount, warningCount, inactiveCount) {
-            const trainerActiveCounts = TRAINERS.map(t => clients.filter(c => c.trainer === t && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) > 3).length);
-            const trainerWarningCounts = TRAINERS.map(t => clients.filter(c => c.trainer === t && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) <= 3 && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) > 0).length);
+            const thresh = userSettings.warningThreshold || 3;
+            const trainerActiveCounts = TRAINERS.map(t => clients.filter(c => c.trainer === t && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) > thresh).length);
+            const trainerWarningCounts = TRAINERS.map(t => clients.filter(c => c.trainer === t && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) <= thresh && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) > 0).length);
             const trainerInactiveCounts = TRAINERS.map(t => clients.filter(c => c.trainer === t && ((c.total || parsePackageToNumber(c.package)) - (c.used || 0)) <= 0).length);
 
             const ctx1 = document.getElementById('chart-trainer-dist').getContext('2d');
@@ -1759,8 +2093,8 @@
                 data: {
                     labels: TRAINERS.map(t => t.split(' ')[0]),
                     datasets: [
-                        { label: 'Aktif (>3)', data: trainerActiveCounts, backgroundColor: '#0d9488' },
-                        { label: 'Akan Habis (1-3)', data: trainerWarningCounts, backgroundColor: '#d97706' },
+                        { label: `Aktif (>${thresh})`, data: trainerActiveCounts, backgroundColor: '#0d9488' },
+                        { label: `Akan Habis (1-${thresh})`, data: trainerWarningCounts, backgroundColor: '#d97706' },
                         { label: 'Habis (0)', data: trainerInactiveCounts, backgroundColor: '#e11d48' }
                     ]
                 },
@@ -1781,7 +2115,7 @@
             chartSessionStatusInstance = new Chart(ctx2, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Aktif (>3)', 'Akan Habis (1-3)', 'Habis (0)'],
+                    labels: [`Aktif (>${thresh})`, `Akan Habis (1-${thresh})`, 'Habis (0)'],
                     datasets: [{
                         data: [Math.max(0, activeCount - warningCount), warningCount, inactiveCount],
                         backgroundColor: ['#10b981', '#f59e0b', '#f43f5e'],
@@ -1806,6 +2140,7 @@
         }
 
         function toggleSelectAll(masterCheckbox) {
+            const thresh = userSettings.warningThreshold || 3;
             const searchVal = document.getElementById('search-input').value.toLowerCase();
             const trainerFilter = document.getElementById('filter-trainer').value;
             const statusFilter = document.getElementById('filter-status').value;
@@ -1822,8 +2157,8 @@
                 const total = c.total || parsePackageToNumber(c.package);
                 const rem = total - (c.used || 0);
                 let matchStatus = true;
-                if (statusFilter === 'ACTIVE') matchStatus = rem > 3;
-                else if (statusFilter === 'WARNING') matchStatus = rem <= 3 && rem > 0;
+                if (statusFilter === 'ACTIVE') matchStatus = rem > thresh;
+                else if (statusFilter === 'WARNING') matchStatus = rem <= thresh && rem > 0;
                 else if (statusFilter === 'EXPIRED') matchStatus = rem <= 0;
 
                 return matchName && matchTrainer && matchStatus;
